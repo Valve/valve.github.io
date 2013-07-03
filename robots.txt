@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: 
 
-Sitemap: http://Valve.github.io/sitemap.xml 
+Sitemap: http://valve.github.io/sitemap.xml 
