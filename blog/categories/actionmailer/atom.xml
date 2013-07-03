@@ -4,7 +4,7 @@
   <title><![CDATA[Category: actionmailer | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/actionmailer/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-03T17:27:39+04:00</updated>
+  <updated>2013-07-03T17:45:00+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -32,7 +32,7 @@ You might try to set them in mailer:</p>
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">UserMailer</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span>
-</span><span class='line'>  <span class="n">smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">some</span><span class="o">.</span><span class="n">domain</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;}</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>  <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">lsquo</span><span class="p">;</span><span class="n">some</span><span class="o">.</span><span class="n">domain</span><span class="o">&amp;</span><span class="n">rsquo</span><span class="p">;}</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="sr">&lt;p&gt;  def user_registered(user)&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
 </span><span class='line'>
