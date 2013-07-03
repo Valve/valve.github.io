@@ -9,11 +9,14 @@
   <meta name="author" content="valve">
 
   
-  <meta name="description" content="Since all rust hello world tutorials usually start like this: 1
+  <meta name="description" content="Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
+You might try to set them in mailer: 1
 2
 3
-fn main(){ println(&quot;Hello, world&quot;);
-} It&rsquo;s unclear where to take &hellip;">
+4
+5
+6
+7 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +84,81 @@ fn main(){ println(&quot;Hello, world&quot;);
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-03T16:48:00+04:00" pubdate data-updated="true">Jul 3<span>rd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
+You might try to set them in mailer:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">UserMailer</span> <span class="o">&lt;</span> <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">user_registered</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">mail</span><span class="p">(</span><span class="ss">to</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="ss">subject</span><span class="p">:</span> <span class="s1">&#39;You registered here!&#39;</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But this will override the smtp settings for the rest of mailers.</p>
+
+<p>Instead, set them for the email instance:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># assuming in controller action</span>
+</span><span class='line'><span class="n">mail</span> <span class="o">=</span> <span class="no">UserMailer</span><span class="o">.</span><span class="n">user_registered</span><span class="p">(</span><span class="n">current_user</span><span class="p">)</span>
+</span><span class='line'><span class="n">custom_smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">,</span> <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">}</span>
+</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">delivery_method</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">merge!</span> <span class="n">custom_smtp_settings</span>
+</span><span class='line'><span class="c1"># now this will send using custom SMTP settings</span>
+</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">deliver</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>rails-3.1</code></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -161,6 +239,10 @@ arguments provided.</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/07/03/reading-command-line-arguments-in-rust/">Reading Command Line Arguments in Rust</a>
