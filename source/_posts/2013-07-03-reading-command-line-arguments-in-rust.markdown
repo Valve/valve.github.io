@@ -16,7 +16,7 @@ fn main(){
 It's unclear where to take command line arguments. 
 The solution:
 {% codeblock lang:rust %}
-extern mod std;
+use std::os;
 
 fn main(){
   let args: ~[~str] = os::args();
@@ -27,5 +27,5 @@ fn main(){
 This will give you a vector with strings where first string will be the app being run and the rest is the 
 arguments provided.
 
-`rust-0.6`
+`rust-0.7`
 
