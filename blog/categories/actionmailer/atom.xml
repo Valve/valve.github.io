@@ -4,7 +4,7 @@
   <title><![CDATA[Category: actionmailer | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/actionmailer/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-13T12:35:03+04:00</updated>
+  <updated>2013-07-13T18:52:01+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -20,6 +20,9 @@
     <id>http://valve.github.io/blog/2013/07/03/different-smtp-settings-for-actionmailer-action</id>
     <content type="html"><![CDATA[<p>Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
 You might try to set them in mailer:</p>
+
+<!--more-->
+
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>

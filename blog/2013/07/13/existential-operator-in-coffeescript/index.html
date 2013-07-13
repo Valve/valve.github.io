@@ -1,24 +1,109 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[valve's]]></title>
-  <link href="http://valve.github.io/atom.xml" rel="self"/>
-  <link href="http://valve.github.io/"/>
-  <updated>2013-07-13T18:52:01+04:00</updated>
-  <id>http://valve.github.io/</id>
-  <author>
-    <name><![CDATA[valve]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>existential operator in CoffeeScript - valve's</title>
+  <meta name="author" content="valve">
 
   
-  <entry>
-    <title type="html"><![CDATA[existential operator in CoffeeScript]]></title>
-    <link href="http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/"/>
-    <updated>2013-07-13T12:39:00+04:00</updated>
-    <id>http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript</id>
-    <content type="html"><![CDATA[<p>Existential operator <code>?</code> can be used in three useful ways in CoffeeScript.</p>
+  <meta name="description" content="Existential operator ? can be used in three useful ways in CoffeeScript. Checking the existence of a variable In JavaScript there is no built-in way &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="valve's" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42202458-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">valve's</a></h1>
+  
+    <h2>corner</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:valve.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Existential Operator in CoffeeScript</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-13T12:39:00+04:00" pubdate data-updated="true">Jul 13<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Existential operator <code>?</code> can be used in three useful ways in CoffeeScript.</p>
 
 <!--more-->
 
@@ -295,105 +380,140 @@ It does this using <code>typeof bla === 'function'</code>; The function is calle
 
 <p>CoffeeScript existential operator is a useful tool to cut down the verbosity of JavaScript when dealing with existence and null checks.
 It also can be used to shield inexperienced JavaScript developers from JavaScript bad parts.</p>
-]]></content>
-  </entry>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  <entry>
-    <title type="html"><![CDATA[different SMTP settings for ActionMailer action]]></title>
-    <link href="http://valve.github.io/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/"/>
-    <updated>2013-07-03T16:48:00+04:00</updated>
-    <id>http://valve.github.io/blog/2013/07/03/different-smtp-settings-for-actionmailer-action</id>
-    <content type="html"><![CDATA[<p>Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
-You might try to set them in mailer:</p>
 
-<!--more-->
+<span class="byline author vcard">Posted by <span class="fn">valve</span></span>
+
+      
 
 
 
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">UserMailer</span> <span class="o">&lt;</span> <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span>
-</span><span class='line'>  <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">user_registered</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">mail</span><span class="p">(</span><span class="ss">to</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="ss">subject</span><span class="p">:</span> <span class="s1">&#39;You registered here!&#39;</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
 
 
-<p>But this will override the smtp settings for the rest of mailers.</p>
-
-<p>Instead, set them for the email instance:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># assuming in controller action</span>
-</span><span class='line'><span class="n">mail</span> <span class="o">=</span> <span class="no">UserMailer</span><span class="o">.</span><span class="n">user_registered</span><span class="p">(</span><span class="n">current_user</span><span class="p">)</span>
-</span><span class='line'><span class="n">custom_smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">,</span> <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">}</span>
-</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">delivery_method</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">merge!</span> <span class="n">custom_smtp_settings</span>
-</span><span class='line'><span class="c1"># now this will send using custom SMTP settings</span>
-</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">deliver</span>
-</span></code></pre></td></tr></table></div></figure>
 
 
-<p><code>rails-3.1</code></p>
-]]></content>
-  </entry>
   
-  <entry>
-    <title type="html"><![CDATA[reading command line arguments in rust]]></title>
-    <link href="http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust/"/>
-    <updated>2013-07-03T13:31:00+04:00</updated>
-    <id>http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust</id>
-    <content type="html"><![CDATA[<p>Since all rust hello world tutorials usually start like this:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="n">println</span><span class="p">(</span><span class="s">&quot;Hello, world&quot;</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
 
 
-<p>It&rsquo;s unclear where to take command line arguments.</p>
+<time datetime="2013-07-13T12:39:00+04:00" pubdate data-updated="true">Jul 13<span>th</span>, 2013</time>
+      
 
-<!--more-->
-
-
-<p>The solution:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">os</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="k">let</span> <span class="n">args</span><span class="o">:</span> <span class="o">~</span><span class="p">[</span><span class="o">~</span><span class="n">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">::</span><span class="n">args</span><span class="p">();</span>
-</span><span class='line'>  <span class="n">println</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">to_str</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will give you a vector with strings where first string will be the app being run and the rest is the
-arguments provided.</p>
-
-<p><code>rust-0.7</code></p>
-]]></content>
-  </entry>
+<span class="categories">
   
-</feed>
+    <a class='category' href='/blog/categories/coffeescript/'>coffeescript</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/" data-via="" data-counturl="http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/" title="Previous Post: different SMTP settings for ActionMailer action">&laquo; different SMTP settings for ActionMailer action</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/03/reading-command-line-arguments-in-rust/">Reading Command Line Arguments in Rust</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - valve -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iamvalentin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/';
+        var disqus_url = 'http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

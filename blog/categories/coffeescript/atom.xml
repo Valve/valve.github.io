@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: coffeescript | valve's]]></title>
+  <link href="http://valve.github.io/blog/categories/coffeescript/atom.xml" rel="self"/>
+  <link href="http://valve.github.io/"/>
+  <updated>2013-07-13T18:52:01+04:00</updated>
+  <id>http://valve.github.io/</id>
+  <author>
+    <name><![CDATA[valve]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[existential operator in CoffeeScript]]></title>
+    <link href="http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript/"/>
+    <updated>2013-07-13T12:39:00+04:00</updated>
+    <id>http://valve.github.io/blog/2013/07/13/existential-operator-in-coffeescript</id>
+    <content type="html"><![CDATA[<p>Existential operator <code>?</code> can be used in three useful ways in CoffeeScript.</p>
+
+<!--more-->
+
+
+<h3>Checking the existence of a variable</h3>
+
+<p>In JavaScript there is no built-in way of checking the existence of a variable.
+You can try testing the existence with <code>if(variable){...}</code> but it won&rsquo;t work in these cases:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="k">this</span> <span class="nx">will</span> <span class="nx">not</span> <span class="nx">print</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="k">if</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="k">this</span> <span class="nx">will</span> <span class="nx">not</span> <span class="nx">print</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="k">if</span><span class="p">(</span><span class="kc">false</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="k">this</span> <span class="nx">will</span> <span class="nx">not</span> <span class="nx">print</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="c1">// abc was never declared</span>
+</span><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">abc</span><span class="p">){</span>
+</span><span class='line'>  <span class="c1">//ReferenceError: abc is not defined</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The correct way to test if variable was both declared and initialized:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="kc">undefined</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span> <span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">variable</span> <span class="nx">was</span> <span class="nx">declared</span> <span class="nx">and</span> <span class="nx">initialized</span> <span class="kd">with</span> <span class="nx">a</span> <span class="nx">value</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>You may be tempted to use direct comparison with undefined:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">variable</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">&amp;</span><span class="nx">hellip</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8) undefined can be overwritten:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nb">window</span><span class="p">.</span><span class="kc">undefined</span> <span class="o">=</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">pancakes</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;;</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="k">if</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">pancakes</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span> <span class="o">===</span> <span class="kc">undefined</span><span class="p">){</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">This</span> <span class="nx">will</span> <span class="nx">print</span><span class="p">,</span> <span class="k">if</span> <span class="nx">you</span> <span class="nx">are</span> <span class="nx">unfortunate</span> <span class="nx">enough</span> <span class="nx">to</span> <span class="nx">use</span> <span class="nx">IE</span> <span class="mi">6</span><span class="o">-</span><span class="mi">8</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><a href="http://kangax.github.io/es5-compat-table/">All ES5 compatible browsers</a> have <code>undefined</code> immutable, i.e. it can&rsquo;t be changed, but it&rsquo;s better to play it safe.</p>
+
+<p>CoffeeScript has a syntactic shortcut for testing existence:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="k">if</span> <span class="nx">variable</span><span class="o">?</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">variable</span> <span class="o">is</span> <span class="nx">both</span> <span class="nx">declared</span> <span class="o">and</span> <span class="nx">initialized</span> <span class="nx">with</span> <span class="nx">a</span> <span class="nx">non</span><span class="o">-</span><span class="kc">null</span> <span class="nx">value</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This code will be transpiled to:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="kc">undefined</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;</span> <span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">If</span> <span class="nx">variable</span> <span class="nx">was</span> <span class="nx">both</span> <span class="nx">declared</span> <span class="nx">and</span> <span class="nx">initialized</span> <span class="kd">with</span> <span class="nx">a</span> <span class="nx">non</span><span class="o">-</span><span class="kc">null</span> <span class="nx">value</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h3>Conditional assignment</h3>
+
+<p>What if you want to initialize a variable only if it has not been already initialized?
+In JavaScript you&rsquo;d usually do something like:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="kd">function</span> <span class="nx">getUserLocale</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">locale</span> <span class="o">==</span> <span class="kc">null</span><span class="p">){</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="k">this</span><span class="p">.</span><span class="nx">locale</span> <span class="o">=</span> <span class="nx">DB</span><span class="p">.</span><span class="nx">getLocaleByUser</span><span class="p">(</span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">locale</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This technique caches the result of an expensive computation or database query in a variable.
+In above example, all subsequent <code>getUserLocale</code> function calls will not query the database.
+The important part is comparing with <code>null</code> using <code>==</code> rather than <code>===</code>, because <code>==</code> will evaluate to true if variable is either <code>undefined</code> or <code>null</code>.</p>
+
+<p>Such <code>cache on first call</code> pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nv">getUserLocale = </span><span class="o">&amp;</span><span class="nx">ndash</span><span class="p">;</span><span class="o">&gt;</span>
+</span><span class='line'>  <span class="nx">@locale</span> <span class="o">?=</span> <span class="nx">DB</span><span class="p">.</span><span class="nx">getLocaleByUser</span><span class="p">(</span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">)</span><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>?=</code> is the operator that performs conditional assignment.</p>
+
+<p>This will be transpiled to roughly the same JS as above, using ternary operator:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">getUserLocale</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">locale</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="k">this</span><span class="p">.</span><span class="nx">locale</span> <span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">locale</span> <span class="o">=</span> <span class="nx">DB</span><span class="p">.</span><span class="nx">getLocaleByUser</span><span class="p">(</span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">);</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>What about undeclared variables and <code>?=</code>? If you try this:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="o">&lt;/</span><span class="nx">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">h1</span><span class="o">&gt;</span><span class="nx">abc</span> <span class="o">is</span> <span class="o">not</span> <span class="nx">declared</span><span class="o">&lt;/</span><span class="nx">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">abc</span> <span class="o">?=</span> <span class="mi">99</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This will result in a compile-time error:
+<code>the variable "abc" can't be assigned with ?= because it has not been declared before</code>.
+and prevents a <code>ReferenceError</code> at run time.</p>
+
+<p>If you know Ruby, <code>||=</code> is the same thing there.</p>
+
+<h3>Safe property / function chaining</h3>
+
+<p>Chaining function calls is a great way to write terse yet fluent code.
+A good example is working with jQuery:
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">$</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="err">#</span><span class="nx">header</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;).</span><span class="nx">css</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">color</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;,</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="err">#</span><span class="nx">fadfad</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;).</span><span class="nx">show</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">slow</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;).</span><span class="nx">off</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This is made possible because these jQuery functions return a reference to <code>this</code>.
+But what if one of the function returns null or undefined?</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span><span class="p">.</span><span class="nx">zip</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>If current user&rsquo;s address is null or undefined, the <code>.zip</code> property call will result in <code>TypeError</code>.</p>
+
+<p>A simple but ugly solution would be to use a lot of <code>if</code> checks:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+</span><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span> <span class="o">!=</span> <span class="kc">null</span><span class="p">){</span>
+</span><span class='line'>  <span class="c1">// only now this is safe</span>
+</span><span class='line'>  <span class="nx">zip</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span><span class="p">.</span><span class="nx">zip</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>But this can quickly get out of hand with deep nesting.</p>
+
+<p>CoffeeScript has a safe way of accessing long property chains using <code>?.</code> variant of existential operator:
+<div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">zip = </span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="o">?</span><span class="p">.</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This will either soak up the <code>null</code> or <code>undefined</code> references and safely return <code>undefined</code> or
+return the final property value. In our case the generated code looks like:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span><span class="p">,</span> <span class="nx">_ref</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span><span class="nx">zip</span> <span class="o">=</span> <span class="p">(</span><span class="o">&lt;</span><span class="nx">em</span><span class="o">&gt;</span><span class="nx">ref</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="o">&lt;</span><span class="err">/em&gt;ref.address.zip : void 0;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>What is this weird <code>void 0</code> thing? This is again a function of fighting the pre AS5 <code>undefined</code> mutability I referred to earlier.
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void">JavaScript defines void as a unary operator</a> that returns <code>undefined</code> for any argument. In other words, CoffeeScript compiler uses a set of nested ternary operators to safely return either last property value or undefined with <code>void 0</code>.</p>
+
+<p>Calling a function safely works similarly:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">noSuchFunction</span><span class="o">?</span><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This transpiles to:
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">noSuchFunction</span> <span class="o">===</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="kd">function</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nx">noSuchFunction</span><span class="p">();</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Key thing to take away here is that CoffeeScript first tests that callable function is defined and is a function.
+It does this using <code>typeof bla === 'function'</code>; The function is called only if it is defined.</p>
+
+<p>Safe function invocation can be chained as well with other function/property calls:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>example from coffeescript.org </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span><span class="o">?</span><span class="p">().</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This transpiles to:
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span><span class="p">,</span> <span class="nx">_ref</span><span class="p">;</span>
+</span><span class='line'><span class="nx">zip</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span> <span class="o">===</span> <span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="kd">function</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;</span>
+</span><span class='line'>  <span class="o">?&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="p">(</span><span class="nx">_ref</span> <span class="o">=</span> <span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span><span class="p">().</span><span class="nx">address</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="nx">_ref</span><span class="p">.</span><span class="nx">zipcode</span> <span class="o">:</span> <span class="k">void</span> <span class="mi">0</span>
+</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>  <span class="o">:</span>
+</span><span class='line'>  <span class="k">void</span> <span class="mi">0</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Drawing analogy with Ruby-on-Rails ActiveSupport, the safe chaining can be seen as <a href="http://api.rubyonrails.org/classes/NilClass.html#function-i-try">try</a> method.</p>
+
+<h4>Conclusion:</h4>
+
+<p>CoffeeScript existential operator is a useful tool to cut down the verbosity of JavaScript when dealing with existence and null checks.
+It also can be used to shield inexperienced JavaScript developers from JavaScript bad parts.</p>
+]]></content>
+  </entry>
+  
+</feed>

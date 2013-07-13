@@ -4,7 +4,7 @@
   <title><![CDATA[Category: rust | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/rust/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-13T12:35:03+04:00</updated>
+  <updated>2013-07-13T18:52:01+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -27,8 +27,12 @@
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>It&rsquo;s unclear where to take command line arguments.
-The solution:
+<p>It&rsquo;s unclear where to take command line arguments.</p>
+
+<!--more-->
+
+
+<p>The solution:
 <div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>

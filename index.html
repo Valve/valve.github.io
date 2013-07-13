@@ -9,14 +9,7 @@
   <meta name="author" content="valve">
 
   
-  <meta name="description" content="Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
-You might try to set them in mailer: 1
-2
-3
-4
-5
-6
-7 &hellip;">
+  <meta name="description" content="Existential operator ? can be used in three useful ways in CoffeeScript. ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +83,47 @@ You might try to set them in mailer: 1
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-13T12:39:00+04:00" pubdate data-updated="true">Jul 13<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Existential operator <code>?</code> can be used in three useful ways in CoffeeScript.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/13/existential-operator-in-coffeescript/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a></h1>
     
     
@@ -116,45 +150,12 @@ You might try to set them in mailer: 1
   <div class="entry-content"><p>Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
 You might try to set them in mailer:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">UserMailer</span> <span class="o">&lt;</span> <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span>
-</span><span class='line'>  <span class="ss">ActionMailer</span><span class="p">:</span><span class="ss">:Base</span><span class="o">.</span><span class="n">smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">user_registered</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">mail</span><span class="p">(</span><span class="ss">to</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="ss">subject</span><span class="p">:</span> <span class="s1">&#39;You registered here!&#39;</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But this will override the smtp settings for the rest of mailers.</p>
-
-<p>Instead, set them for the email instance:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># assuming in controller action</span>
-</span><span class='line'><span class="n">mail</span> <span class="o">=</span> <span class="no">UserMailer</span><span class="o">.</span><span class="n">user_registered</span><span class="p">(</span><span class="n">current_user</span><span class="p">)</span>
-</span><span class='line'><span class="n">custom_smtp_settings</span> <span class="o">=</span> <span class="p">{</span><span class="ss">address</span><span class="p">:</span> <span class="s1">&#39;some.domain&#39;</span><span class="p">,</span> <span class="ss">port</span><span class="p">:</span> <span class="mi">25</span><span class="p">}</span>
-</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">delivery_method</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">merge!</span> <span class="n">custom_smtp_settings</span>
-</span><span class='line'><span class="c1"># now this will send using custom SMTP settings</span>
-</span><span class='line'><span class="n">mail</span><span class="o">.</span><span class="n">deliver</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>rails-3.1</code></p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -199,30 +200,14 @@ You might try to set them in mailer:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>It&rsquo;s unclear where to take command line arguments.
-The solution:</p>
+<p>It&rsquo;s unclear where to take command line arguments.</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">os</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="k">let</span> <span class="n">args</span><span class="o">:</span> <span class="o">~</span><span class="p">[</span><span class="o">~</span><span class="n">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">::</span><span class="n">args</span><span class="p">();</span>
-</span><span class='line'>  <span class="n">println</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">to_str</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This will give you a vector with strings where first string will be the app being run and the rest is the
-arguments provided.</p>
-
-<p><code>rust-0.7</code></p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/03/reading-command-line-arguments-in-rust/">Read on &rarr;</a>
+    </footer>
   
 
 
@@ -239,6 +224,10 @@ arguments provided.</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a>
