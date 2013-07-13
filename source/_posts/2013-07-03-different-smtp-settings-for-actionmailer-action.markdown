@@ -9,6 +9,8 @@ categories: [ruby,rails,actionmailer]
 Sometimes you may want to set per-action SMTP settings that are different from site-wide settings.
 You might try to set them in mailer:
 
+<!--more-->
+
 {% codeblock lang:ruby %}
 class UserMailer < ActionMailer::Base
   ActionMailer::Base.smtp_settings = {address: 'some.domain'}

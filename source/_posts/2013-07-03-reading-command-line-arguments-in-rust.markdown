@@ -14,6 +14,9 @@ fn main(){
 {% endcodeblock %}
 
 It's unclear where to take command line arguments. 
+
+<!--more-->
+
 The solution:
 {% codeblock lang:rust %}
 use std::os;
