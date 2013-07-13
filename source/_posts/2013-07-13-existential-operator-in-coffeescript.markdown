@@ -42,13 +42,13 @@ if(typeof variable !== 'undefined' && variable !== null){
 }
 {% endcodeblock %}
 
-You may be tempted to use direct comparison with undefined:
+You may be tempted to use direct comparison with `undefined`:
 
 {% codeblock lang:javascript %}
 if(variable !== undefined ...
 {% endcodeblock %}
 
-But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8) undefined can be overwritten:
+But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8)  `undefined` can be overwritten:
 
 {% codeblock lang:javascript %}
 window.undefined = 'pancakes';
@@ -93,9 +93,9 @@ function getUserLocale(){
 
 This technique caches the result of an expensive computation or database query in a variable.
 In above example, all subsequent `getUserLocale` function calls will not query the database.
-The important part is comparing with `null` using `==` rather than `===`, because `==` will evaluate to true if variable is either `undefined` or `null`.
+The important part is comparing with `null` using `==`, rather than `===`, because `==` will evaluate to `true` if variable is either `undefined` or `null`.
 
-Such `cache on first call` pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:
+Such _cache on first call_ pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:
 
 {% codeblock lang:coffeescript CoffeeScript %}
 
@@ -114,7 +114,7 @@ getUserLocale = function() {
 };
 {% endcodeblock %}
 
-What about undeclared variables and `?=`? If you try this:
+What if you try to conditionally assign an undeclared variable? If you try this:
 
 {% codeblock lang:coffeescript CoffeeScript %}
 # abc is not declared 
@@ -123,7 +123,7 @@ abc ?= 99
 
 This will result in a compile-time error:
 ` the variable "abc" can't be assigned with ?= because it has not been declared before`.
-and prevents a `ReferenceError` at run time.
+This compile-time checking is very helpful, because it prevents a `ReferenceError` at run time.
 
 If you know Ruby, `||=` is the same thing there.
 
@@ -137,13 +137,13 @@ $('#header').css('color', '#fadfad').show('slow').off();
 {% endcodeblock %}
 
 This is made possible because these jQuery functions return a reference to `this`.
-But what if one of the function returns null or undefined?
+But what if one of the function returns `null` or `undefined`?
 
 {%codeblock lang:javascript %}
 var zip = User.current.address.zip
 {%endcodeblock%}
 
-If current user's address is null or undefined, the `.zip` property call will result in `TypeError`.
+If current user's address is `null` or `undefined`, the `.zip` property call will result in `TypeError`.
 
 A simple but ugly solution would be to use a lot of `if` checks:
 
@@ -163,7 +163,7 @@ zip = User.current?.address?.zip
 {%endcodeblock%}
 
 This will either soak up the `null` or `undefined` references and safely return `undefined` or
-return the final property value. In our case the generated code looks like: 
+return the final property value. In our case the generated code looks like this:
 
 {%codeblock lang:javascript %}
 var zip, _ref;
@@ -171,8 +171,8 @@ var zip, _ref;
 zip = (_ref = User.current) != null ? _ref.address.zip : void 0;
 {%endcodeblock %}
 
-What is this weird `void 0` thing? This is again a function of fighting the pre AS5 `undefined` mutability I referred to earlier.
-[JavaScript defines void as a unary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) that returns `undefined` for any argument. In other words, CoffeeScript compiler uses a set of nested ternary operators to safely return either last property value or undefined with `void 0`.
+What is this weird `void 0` thing? This is to fight the pre AS5 `undefined` mutability I referred to earlier.
+[JavaScript defines void as a unary operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void) that returns `undefined` for any argument. In other words, CoffeeScript compiler uses a set of nested ternary operators to safely return either last property value or `undefined` with `void 0`.
 
 Calling a function safely works similarly:
 
@@ -188,9 +188,9 @@ if (typeof noSuchFunction === 'function') {
 {%endcodeblock %}
 
 Key thing to take away here is that CoffeeScript first tests that callable function is defined and is a function.
-It does this using `typeof bla === 'function'`; The function is called only if it is defined.
+It does this using `typeof bla === 'function'`. The function is called only if it is defined.
 
-Safe function invocation can be chained as well with other function/property calls:
+Safe function invocation can be chained as well with other function or property calls:
 
 {% codeblock lang:coffeescript example from coffeescript.org %}
 lottery.drawWinner?().address?.zip
@@ -203,7 +203,7 @@ zip = typeof lottery.drawWinner === "function"
   ? 
     (_ref = lottery.drawWinner().address) != null ? _ref.zipcode : void 0 
   : 
-  void 0;
+    void 0;
 {%endcodeblock%}
 
 Drawing analogy with Ruby-on-Rails ActiveSupport, the safe chaining can be seen as [try](http://api.rubyonrails.org/classes/NilClass.html#function-i-try) method.
