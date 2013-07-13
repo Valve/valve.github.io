@@ -2,24 +2,24 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust/</loc>
-        <lastmod>2013-07-03T13:55:00+04:00</lastmod>
+        <lastmod>2013-07-13T12:34:55+04:00</lastmod>
     </url>
     <url>
         <loc>
             http://valve.github.io/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/
         </loc>
-        <lastmod>2013-07-03T17:44:37+04:00</lastmod>
+        <lastmod>2013-07-03T19:13:25+04:00</lastmod>
     </url>
     <url>
         <loc>http://valve.github.io/robots.txt</loc>
-        <lastmod>2013-07-03T12:09:26+04:00</lastmod>
+        <lastmod>2013-07-03T19:13:25+04:00</lastmod>
     </url>
     <url>
         <loc>http://valve.github.io/</loc>
-        <lastmod>2013-07-03T17:44:37+04:00</lastmod>
+        <lastmod>2013-07-13T12:34:55+04:00</lastmod>
     </url>
     <url>
         <loc>http://valve.github.io/blog/archives/</loc>
-        <lastmod>2013-07-03T17:44:37+04:00</lastmod>
+        <lastmod>2013-07-13T12:34:55+04:00</lastmod>
     </url>
 </urlset>

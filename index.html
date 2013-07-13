@@ -208,7 +208,7 @@ The solution:</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="k">mod</span> <span class="n">std</span><span class="p">;</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">os</span><span class="p">;</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
 </span><span class='line'>  <span class="k">let</span> <span class="n">args</span><span class="o">:</span> <span class="o">~</span><span class="p">[</span><span class="o">~</span><span class="n">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">::</span><span class="n">args</span><span class="p">();</span>
@@ -220,7 +220,7 @@ The solution:</p>
 <p>This will give you a vector with strings where first string will be the app being run and the rest is the
 arguments provided.</p>
 
-<p><code>rust-0.6</code></p>
+<p><code>rust-0.7</code></p>
 </div>
   
   
