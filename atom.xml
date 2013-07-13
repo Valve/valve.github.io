@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-13T18:53:41+04:00</updated>
+  <updated>2013-07-13T19:14:58+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -74,14 +74,14 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>You may be tempted to use direct comparison with undefined:</p>
+<p>You may be tempted to use direct comparison with <code>undefined</code>:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">variable</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">...</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8) undefined can be overwritten:</p>
+<p>But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8)  <code>undefined</code> can be overwritten:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -141,9 +141,9 @@ In JavaScript you&rsquo;d usually do something like:</p>
 
 <p>This technique caches the result of an expensive computation or database query in a variable.
 In above example, all subsequent <code>getUserLocale</code> function calls will not query the database.
-The important part is comparing with <code>null</code> using <code>==</code> rather than <code>===</code>, because <code>==</code> will evaluate to true if variable is either <code>undefined</code> or <code>null</code>.</p>
+The important part is comparing with <code>null</code> using <code>==</code>, rather than <code>===</code>, because <code>==</code> will evaluate to <code>true</code> if variable is either <code>undefined</code> or <code>null</code>.</p>
 
-<p>Such <code>cache on first call</code> pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:</p>
+<p>Such <em>cache on first call</em> pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -166,7 +166,7 @@ The important part is comparing with <code>null</code> using <code>==</code> rat
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>What about undeclared variables and <code>?=</code>? If you try this:</p>
+<p>What if you try to conditionally assign an undeclared variable? If you try this:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -178,7 +178,7 @@ The important part is comparing with <code>null</code> using <code>==</code> rat
 
 <p>This will result in a compile-time error:
 <code>the variable "abc" can't be assigned with ?= because it has not been declared before</code>.
-and prevents a <code>ReferenceError</code> at run time.</p>
+This compile-time checking is very helpful, because it prevents a <code>ReferenceError</code> at run time.</p>
 
 <p>If you know Ruby, <code>||=</code> is the same thing there.</p>
 
@@ -193,14 +193,14 @@ A good example is working with jQuery:</p>
 
 
 <p>This is made possible because these jQuery functions return a reference to <code>this</code>.
-But what if one of the function returns null or undefined?</p>
+But what if one of the function returns <code>null</code> or <code>undefined</code>?</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>If current user&rsquo;s address is null or undefined, the <code>.zip</code> property call will result in <code>TypeError</code>.</p>
+<p>If current user&rsquo;s address is <code>null</code> or <code>undefined</code>, the <code>.zip</code> property call will result in <code>TypeError</code>.</p>
 
 <p>A simple but ugly solution would be to use a lot of <code>if</code> checks:</p>
 
@@ -228,7 +228,7 @@ But what if one of the function returns null or undefined?</p>
 
 
 <p>This will either soak up the <code>null</code> or <code>undefined</code> references and safely return <code>undefined</code> or
-return the final property value. In our case the generated code looks like:</p>
+return the final property value. In our case the generated code looks like this:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -239,8 +239,8 @@ return the final property value. In our case the generated code looks like:</p>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>What is this weird <code>void 0</code> thing? This is again a function of fighting the pre AS5 <code>undefined</code> mutability I referred to earlier.
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void">JavaScript defines void as a unary operator</a> that returns <code>undefined</code> for any argument. In other words, CoffeeScript compiler uses a set of nested ternary operators to safely return either last property value or undefined with <code>void 0</code>.</p>
+<p>What is this weird <code>void 0</code> thing? This is to fight the pre AS5 <code>undefined</code> mutability I referred to earlier.
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/void">JavaScript defines void as a unary operator</a> that returns <code>undefined</code> for any argument. In other words, CoffeeScript compiler uses a set of nested ternary operators to safely return either last property value or <code>undefined</code> with <code>void 0</code>.</p>
 
 <p>Calling a function safely works similarly:</p>
 
@@ -262,9 +262,9 @@ return the final property value. In our case the generated code looks like:</p>
 
 
 <p>Key thing to take away here is that CoffeeScript first tests that callable function is defined and is a function.
-It does this using <code>typeof bla === 'function'</code>; The function is called only if it is defined.</p>
+It does this using <code>typeof bla === 'function'</code>. The function is called only if it is defined.</p>
 
-<p>Safe function invocation can be chained as well with other function/property calls:</p>
+<p>Safe function invocation can be chained as well with other function or property calls:</p>
 
 <figure class='code'><figcaption><span>example from coffeescript.org </span></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -285,7 +285,7 @@ It does this using <code>typeof bla === 'function'</code>; The function is calle
 </span><span class='line'>  <span class="o">?</span>
 </span><span class='line'>    <span class="p">(</span><span class="nx">_ref</span> <span class="o">=</span> <span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span><span class="p">().</span><span class="nx">address</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="nx">_ref</span><span class="p">.</span><span class="nx">zipcode</span> <span class="o">:</span> <span class="k">void</span> <span class="mi">0</span>
 </span><span class='line'>  <span class="o">:</span>
-</span><span class='line'>  <span class="k">void</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">void</span> <span class="mi">0</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
