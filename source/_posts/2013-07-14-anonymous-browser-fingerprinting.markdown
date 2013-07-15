@@ -28,9 +28,9 @@ I was given an experimental task to implement the fingerprinting for both anonym
 So I got to work and started making a basic outline in my head. What is that identifies a browser? I gathered it would be:
 _browser agent, browser language, screen color depth, installed plugins and their mime types, timezone offset, local storage, and session storage._
 
-Initially I added the screen resolution as well, but a colleague adviced that one can use multiple monitors with a single laptop, for example connect an external monitor during when in office, so I removed it.
+Initially I added the screen resolution as well, but a colleague adviced that one can use multiple monitors with a single laptop, for example connect an external monitor when working in office, so I removed it.
 
-For my laptop browser the values are:
+On my laptop browser the values are:
 
 {% codeblock lang:javascript %}
 // Assuming jQuery in scope
@@ -50,7 +50,7 @@ var plugins = $.map(navigator.plugins, function(p){
 
 
 $.each(plugins, function(i, p){ 
-  // truncate for this example
+  // truncate only for blog example
   if(p.length > 80){
     console.log(p.substring(0, 77) + '...');
   } else{
@@ -92,7 +92,7 @@ I picked [this implementation](http://github.com/garycourt/murmurhash-js) and ad
 
 The last step was to combine all browser's capabilities into a long string and pass it through hashing.
 
-The end result on my laptop was: `857934012`.
+The end result on my laptop was: `3723825959`
 
 As a finishing touch, I wanted to get rid of jQuery, so I implemented the `each` and `map` methods and got a no-dependencies script.
 
@@ -106,14 +106,23 @@ My tests show that for random strings Murmurh hashing indeed produces collisions
 
 #### What about mobile browsers?
 
-It's simple: browser fingerprinting is awful with mobile browsers, unless you want to distinguish Android users from iPhone ones.
+It's simple: browser fingerprinting is not good with mobile browsers, unless you want to distinguish Android users from iPhone ones.
 
-### Statistics
+### Results
 
-### Conclusion
+After having had the fingerprinting on production for 4 months, I have some data to analyze. First of all, let me say that I'm not at liberty to tell the exact number of visitors to the web site, but I can say it is several millions a month, so we have some data to play with. All numbers below represent our usage and do not represent what you might have.
+
+**89%** of fingerprints are unique
+
+**20%** of our users have more than one fingerprint, i.e. several browsers or devices.
+
+Very few users have a staggering amount of fingerprints, for example 20-25. I don't know if they have a lot of devices, use different browsers or something else.
+
+After viewing the results we removed the fingerprinting because of poor identification, especially with mobile devices. 
+If your traffic mostly comes from desktops and you're OK with 10-12% of false identifications you might want to try it.
 
 ### Show me the code
 
-#### [code on github](https://github.com/Valve/fingerprintjs) - the version I had in production (with test coverage).
+#### [code on github](https://github.com/Valve/fingerprintjs) - the version I had in production
 
 #### [test your browser](http://valve.github.io/fingerprintjs/)
