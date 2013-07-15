@@ -9,7 +9,7 @@
   <meta name="author" content="valve">
 
   
-  <meta name="description" content="Existential operator ? can be used in three useful ways in CoffeeScript. ">
+  <meta name="description" content="What is fingerprinting? Fingerprinting is a technique, outlined in the research by Electronic Frontier Foundation, of anonymously identifying a web &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,57 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-14T12:29:00+04:00" pubdate data-updated="true">Jul 14<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>What is fingerprinting?</h2>
+
+<p>Fingerprinting is a technique, outlined in the <a href="https://panopticlick.eff.org/browser-uniqueness.pdf">research by Electronic Frontier Foundation</a>, of anonymously identifying a web browser with accuracy of up to 94%.</p>
+
+<p>Browser is queried its agent string, screen color depth, language, installed plugins with supported mime types, timezone offset and other capabilities, such as local storage and session storage. Then these values are passed through a hashing function to produce a fingerprint that gives weak guarantees of uniqueness.</p>
+
+<p>No cookies are stored to identify a browser.</p>
+
+<p>It&rsquo;s worth noting that a mobile share of browsers is much more uniform, so fingerprinting should be used only as a supplementary identifying mechanism there.</p>
+
+<p>In this post I&rsquo;m going to explain how it works in detail and give you real-life statistics accumulated over the period of 4 months of production usage.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -224,6 +275,10 @@ You might try to set them in mailer:</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
