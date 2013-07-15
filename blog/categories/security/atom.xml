@@ -4,7 +4,7 @@
   <title><![CDATA[Category: security | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/security/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-15T14:04:58+04:00</updated>
+  <updated>2013-07-16T01:43:39+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -163,7 +163,7 @@
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>So I now knew all my browser had, and I needed to produce the fingerprint itself.
-For that I wanted to use a fast, non-cryptographic hashing function, such as <a href="en.wikipedia.org/wiki/MurmurHash%E2%80%8E">murmur hashing</a>.</p>
+For that I wanted to use a fast, non-cryptographic hashing function, such as <a href="http://en.wikipedia.org/wiki/MurmurHash%E2%80%8E">murmur hashing</a>.</p>
 
 <p>Murmur hashing produces 32-bit integer as a result and works really well. <a href="http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed">When compared to other popular hash functions, MurmurHash performed well in a random distribution of regular keys.</a></p>
 
