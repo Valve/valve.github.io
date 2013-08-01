@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-07-16T01:43:39+04:00</updated>
+  <updated>2013-08-01T16:16:31+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,171 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[jQuery inputmask plugin + AngularJS]]></title>
+    <link href="http://valve.github.io/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/"/>
+    <updated>2013-08-01T13:09:00+04:00</updated>
+    <id>http://valve.github.io/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs</id>
+    <content type="html"><![CDATA[<p>The plugin I was going to use was <a href="https://github.com/RobinHerbots/jquery.inputmask">jquery inputmask</a> by Robin Herbots.</p>
+
+<p>I was working on a small <a href="http://mobeedeals.ru">angularjs application</a> and needed a text input masking to force users to enter their telephone numbers in a certain format. &ldquo;So, what&rsquo;s the problem?&rdquo; &ndash; I thought.</p>
+
+<!--more-->
+
+
+<p>I added the neccessary code:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;form</span> <span class="na">ng-submit=</span><span class="s">&quot;saveApplication()&quot;</span><span class="nt">&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;text&quot;</span> <span class="na">ng-model=</span><span class="s">&quot;application.phone&quot;</span> <span class="na">id=</span><span class="s">&quot;phone&quot;</span><span class="nt">/&gt;</span>
+</span><span class='line'>  ...
+</span><span class='line'><span class="nt">&lt;/form&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="c1">// ....</span>
+</span><span class='line'><span class="c1">// phone mask for Russia </span>
+</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#phone&#39;</span><span class="p">).</span><span class="nx">inputmask</span><span class="p">(</span><span class="s1">&#39;+7(999)999-99-99&#39;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// My controller</span>
+</span><span class='line'><span class="p">...</span>
+</span><span class='line'><span class="nx">$scope</span><span class="p">.</span><span class="nx">saveApplication</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">phone</span> <span class="o">=</span> <span class="nx">application</span><span class="p">.</span><span class="nx">phone</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">...</span> <span class="nx">saving</span> <span class="nx">phone</span> <span class="nx">here</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&hellip; only to find out that <code>$scope.application</code> was <code>undefined</code> and no phone value never made it to controller.</p>
+
+<p>I decided to use any angular-specific masking library and <a href="https://github.com/angular-ui/ui-utils#mask">found one</a>, but it was still buggy and couldn&rsquo;t handle my simple <code>+7(999)999-99-99</code> mask.</p>
+
+<p>Exasperated, I tried several input masking plugins for jQuery, but none of them worked with angular.</p>
+
+<p>Then I stumbled upon <a href="http://stackoverflow.com/questions/14994391">this</a> and <a href="http://stackoverflow.com/questions/16935095">this</a> and understood:</p>
+
+<h4>One must wrap a jQuery plugin into a directive in order for the plugin to work.</h4>
+
+<p>Easy-peasy, let&rsquo;s do it.</p>
+
+<p>Having prepared myself with <a href="http://docs.angularjs.org/guide/directive">the documentation on the subject</a>, I wrote version #1:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="p">...</span> <span class="nx">assuming</span> <span class="nx">I</span> <span class="nx">have</span> <span class="nx">a</span> <span class="nx">module</span> <span class="nx">ngApp</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">ngApp</span><span class="p">.</span><span class="nx">directive</span><span class="p">(</span><span class="s1">&#39;inputMask&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">restrict</span><span class="o">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">link</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="nx">el</span><span class="p">).</span><span class="nx">inputmask</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$eval</span><span class="p">(</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">inputMask</span><span class="p">));</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And the html:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;input</span> <span class="na">input-mask=</span><span class="s">&quot;{mask: &#39;+7(999)999-99-99&#39;}&quot;</span> <span class="na">ng-model=</span><span class="s">&quot;application.phone&quot;</span><span class="nt">/&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Refreshing the browser, I saw the working mask, but the <code>$scope.application</code> was still <code>undefined</code> after filling in the phone, i.e mask was correctly initialized but the value never propagated to the controller. So I added some jQuery into the directive:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="p">...</span> <span class="nx">assuming</span> <span class="nx">I</span> <span class="nx">have</span> <span class="nx">a</span> <span class="nx">module</span> <span class="nx">ngApp</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">ngApp</span><span class="p">.</span><span class="nx">directive</span><span class="p">(</span><span class="s1">&#39;inputMask&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">restrict</span><span class="o">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">link</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="nx">el</span><span class="p">).</span><span class="nx">inputmask</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$eval</span><span class="p">(</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">inputMask</span><span class="p">));</span>
+</span><span class='line'>      <span class="nx">$</span><span class="p">(</span><span class="nx">el</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+</span><span class='line'>        <span class="nx">scope</span><span class="p">.</span><span class="nx">application</span> <span class="o">==</span> <span class="nx">scope</span><span class="p">.</span><span class="nx">application</span> <span class="o">||</span> <span class="p">{}</span>
+</span><span class='line'>        <span class="nx">scope</span><span class="p">.</span><span class="nx">application</span><span class="p">.</span><span class="nx">phone</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">).</span><span class="nx">val</span><span class="p">();</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>How do I get rid of hardcoded bindings? We can access the value of <code>ng-model</code> attribute and set
+the appropriate scope value:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="p">...</span> <span class="nx">assuming</span> <span class="nx">I</span> <span class="nx">have</span> <span class="nx">a</span> <span class="nx">module</span> <span class="nx">ngApp</span>
+</span><span class='line'>
+</span><span class='line'><span class="nx">ngApp</span><span class="p">.</span><span class="nx">directive</span><span class="p">(</span><span class="s1">&#39;inputMask&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nx">restrict</span><span class="o">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span>
+</span><span class='line'>    <span class="nx">link</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">scope</span><span class="p">,</span> <span class="nx">el</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">){</span>
+</span><span class='line'>      <span class="nx">el</span><span class="p">.</span><span class="nx">inputmask</span><span class="p">(</span><span class="nx">scope</span><span class="p">.</span><span class="nx">$eval</span><span class="p">(</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">inputMask</span><span class="p">));</span>
+</span><span class='line'>      <span class="nx">el</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>        <span class="nx">scope</span><span class="p">.</span><span class="nx">$eval</span><span class="p">(</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">ngModel</span> <span class="o">+</span> <span class="s2">&quot;=&#39;&quot;</span> <span class="o">+</span> <span class="nx">el</span><span class="p">.</span><span class="nx">val</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">// or scope[attrs.ngModel] = el.val() if your expression doesn&#39;t contain dot.</span>
+</span><span class='line'>      <span class="p">});</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">};</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I achieved what I wanted, but I&rsquo;m still not quite satisfied because of the nudging feeling that this code could still be made more idiomatic and robust.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[anonymous browser fingerprinting]]></title>
