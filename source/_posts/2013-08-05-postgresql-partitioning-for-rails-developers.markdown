@@ -81,6 +81,10 @@ create table billing_operations
 );
 {% endcodeblock %}
 
+Now, how do I partition this table? 
+
+Postgres uses table inheritance to implement partitioning. It allows you to create a main, _master_ table and inherited tables. 
+
 
 
 
