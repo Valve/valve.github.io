@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-08-01T16:16:31+04:00</updated>
+  <updated>2013-10-27T12:50:43+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,377 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Constant resolution in Ruby]]></title>
+    <link href="http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby/"/>
+    <updated>2013-10-26T11:47:00+04:00</updated>
+    <id>http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby</id>
+    <content type="html"><![CDATA[<p>Ruby constant resolution has always been somewhat confusing to me.
+In this article I&rsquo;m going to demistify it for myself and hopefully help other readers.</p>
+
+<!--more-->
+
+
+<p></p>
+
+<h2>What is a constant?</h2>
+
+<p>Ruby constant is anything that starts with a capital.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">PI</span> <span class="o">=</span> <span class="mi">3</span><span class="o">.</span><span class="mi">1415</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MINUTES_IN_ONE_HOUR</span> <span class="o">=</span> <span class="mi">60</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">LOOK_MA</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m a constant!&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">A</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">Screen::Widget::Button</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yes, regular <code>ALL_CAPITAL</code> are constants, module and class names are constants too.</p>
+
+<h2>How Ruby searches constants.</h2>
+
+<p>When Ruby tries to resolve a constant, it starts looking in current lexical scope by searching the current module or class. If it can&rsquo;t find it there, it searches the enclosing scope and so on.</p>
+
+<p>It&rsquo;s easy to see the lexical scopes search chain with <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-c-nesting">Module::nesting</a> method:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">A</span>
+</span><span class='line'>  <span class="no">A_CONSTANT</span> <span class="o">=</span> <span class="s1">&#39;I am defined in module A&#39;</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">B</span>
+</span><span class='line'>    <span class="k">module</span> <span class="nn">C</span>
+</span><span class='line'>      <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inspect_nesting</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nb">puts</span> <span class="no">Module</span><span class="o">.</span><span class="n">nesting</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'>        <span class="nb">puts</span> <span class="no">A_CONSTANT</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">A</span><span class="p">:</span><span class="ss">:B</span><span class="o">::</span><span class="n">C</span><span class="o">.</span><span class="n">inspect_nesting</span>
+</span><span class='line'><span class="c1"># =&gt; [A::B::C, A::B, A]</span>
+</span><span class='line'><span class="c1"># =&gt; I am defined in module A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Module::nesting</code> returns an array of searcheable lexical scopes, starting from current.
+In above case the search for <code>A_CONSTANT</code> starts from module C, then goes to enclosing scope &ndash; module B, and then to module A where it finally finds it.</p>
+
+<h2>Nesting modules using alternative syntax</h2>
+
+<p>You&rsquo;ve probably seen the alternative way of defining the enclosing modules:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Screen</span>
+</span><span class='line'>  <span class="no">DEFAULT_RESOLUTION</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">768</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">Widgets</span>
+</span><span class='line'>    <span class="k">module</span> <span class="nn">MacOS</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Alternative syntax</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">Screen::Widgets::MacOS::Button</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inspect_nesting</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="no">Module</span><span class="o">.</span><span class="n">nesting</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="no">DEFAULT_RESOLUTION</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Screen</span><span class="p">:</span><span class="ss">:Widgets</span><span class="o">::</span><span class="ss">MacOS</span><span class="p">:</span><span class="ss">:Button</span><span class="o">.</span><span class="n">inspect_nesting</span>
+</span><span class='line'><span class="c1"># =&gt; [Screen::Widgets::MacOS::Button]</span>
+</span><span class='line'><span class="ss">NameError</span><span class="p">:</span> <span class="n">uninitialized</span> <span class="n">constant</span> <span class="ss">Screen</span><span class="p">:</span><span class="ss">:Widgets</span><span class="o">::</span><span class="ss">MacOS</span><span class="p">:</span><span class="ss">:Button</span><span class="o">::</span><span class="no">DEFAULT_RESOLUTION</span>
+</span><span class='line'>  <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">26</span><span class="ss">:in</span> <span class="sb">`inspect_nesting&#39;</span>
+</span><span class='line'><span class="sb">  from (irb):29</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>See the difference?  Constant resolution only uses the innermost module for searching, ignoring the enclosing scopes. By defining the modules with this shorter syntax you lose the ability to search for constants in enclosing scopes.</p>
+
+<h2>Inheritance</h2>
+
+<p>Enclosing scopes is the first place where Ruby searches the constants. Second place is the inheritance hierarchy. Consider this code:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">DRIVING_LICENSE_AGE</span> <span class="o">=</span> <span class="mi">18</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">BusDriver</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">can_drive_from</span>
+</span><span class='line'>    <span class="no">DRIVING_LICENSE_AGE</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">bus_driver</span> <span class="o">=</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">bus_driver</span><span class="o">.</span><span class="n">can_drive_from</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; 18</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Mixins</h3>
+
+<p>Ruby can mixin modules into classes as an alternative to inheritance. When a class mixes in a module, this module inserts itself between the class being mixed in and the parent class in the inheritance hierarchy. The simple way to see this is using <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-ancestors">ancestors</a> method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Insurable</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">150_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">DRIVING_LICENSE_AGE</span> <span class="o">=</span> <span class="mi">18</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">BusDriver</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Insurable</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">can_drive_from</span>
+</span><span class='line'>    <span class="s2">&quot;Can drive from </span><span class="si">#{</span><span class="no">DRIVING_LICENSE_AGE</span><span class="si">}</span><span class="s2">, with life insurance of $</span><span class="si">#{</span><span class="no">LIFE_INSURANCE_AMOUNT</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">ancestors</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'><span class="nb">puts</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">can_drive_from</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; [BusDriver, Insurable, Person, Object, Kernel, BasicObject]</span>
+</span><span class='line'><span class="c1"># =&gt; Can drive from 18, with life insurance of $150000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What&rsquo;s going on here? We&rsquo;ve defined a base class <code>Person</code>, a child class <code>BusDriver</code> that inherits from <code>Person</code>. We also defined a <code>Insurable</code> module which we mixed into our <code>BusDriver</code> class. When we call the <code>ancestors</code> class method, we see the <code>BusDriver</code> class first, then <code>Insurable</code> module which was wedged between <code>BusDriver</code> and <code>Person</code>. Then goes the <code>Person</code> class, then, obviously, <code>Object</code>. This is all nice and clear.</p>
+
+<p>But why do we see <code>Kernel</code> between <code>Object</code> and <code>BasicObject</code>? This is because <code>Kernel</code> is a module that is mixed into <code>Object</code> thus inserting itself into the inheritance hierarchy. This <code>ancestors</code> array is how the name resolution works throughout the inheritance chain.</p>
+
+<h2>Full search path</h2>
+
+<p>Now that you&rsquo;ve seen the inheritance part of the name search, you can see the full picture:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># searching from left to right</span>
+</span><span class='line'><span class="n">full_path</span> <span class="o">=</span> <span class="o">[</span><span class="no">Module</span><span class="o">.</span><span class="n">nesting</span> <span class="o">+</span> <span class="no">Module</span><span class="o">.</span><span class="n">ancestors</span><span class="o">].</span><span class="n">uniq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>const_missing method</h2>
+
+<p>When Ruby has finished searching the constants up the nesting and ancestors chain and didn&rsquo;t find it, it gives the calling code the last chance by calling the <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-const_missing">const_missing</a> method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Person</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">const_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Oh me oh my, can&#39;t find the constant: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Person</span><span class="p">:</span><span class="ss">:LOL</span>
+</span><span class='line'><span class="c1"># =&gt; Oh me oh my, can&#39;t find the constant: LOL</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>NameError</h3>
+
+<p>This error is called when Ruby can&rsquo;t find the constant and there is no <code>const_missing</code> method defined.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Object</span><span class="p">:</span><span class="ss">:BLASTER</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; NameError: uninitialized constant BLASTER</span>
+</span><span class='line'>  <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">8</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Word about autoloading</h2>
+
+<p>Let&rsquo;s say you&rsquo;d like to be flexible about your constants and load them automatically, following some naming convention?  Turns out, there is a way, it&rsquo;s called autoloading.</p>
+
+<p>If we were to implememt autoloading from scratch, it would be something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nc">Object</span><span class="o">.</span><span class="nf">const_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>  <span class="vi">@looked_for</span> <span class="o">||=</span> <span class="p">{}</span>
+</span><span class='line'>  <span class="n">str_name</span> <span class="o">=</span> <span class="nb">name</span><span class="o">.</span><span class="n">to_s</span>
+</span><span class='line'>  <span class="k">raise</span> <span class="s2">&quot;Class not found: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="vi">@looked_for</span><span class="o">[</span><span class="n">str_name</span><span class="o">]</span>
+</span><span class='line'>  <span class="vi">@looked_for</span><span class="o">[</span><span class="n">str_name</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="n">file</span> <span class="o">=</span> <span class="n">str_name</span><span class="o">.</span><span class="n">downcase</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="n">file</span>
+</span><span class='line'>  <span class="n">klass</span> <span class="o">=</span> <span class="nb">const_get</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">klass</span> <span class="k">if</span> <span class="n">klass</span>
+</span><span class='line'>  <span class="k">raise</span> <span class="s2">&quot;Class not found: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Turns out, we don&rsquo;t have to, because autoloading is built into Ruby. We have <a href="http://ruby-doc.org/core-2.0.0/Kernel.html#method-i-autoload">Kernel#autoload</a>, <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-autoload">Module#autoload</a> and more sophisticated <a href="http://api.rubyonrails.org/classes/ActiveSupport/Autoload.html">ActiveSupport::Autoload</a>. I&rsquo;m not going to cover these topics here but will try to do it in a future post.</p>
+
+<h2>Ambiguity</h2>
+
+<p>Here comes the tricky part: what if you have multiple constants with the same name?
+Consider this example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Insurable</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">150_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">50_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pilot</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="no">INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">300_000</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Insurable</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="ss">Pilot</span><span class="p">:</span><span class="ss">:INSURANCE_AMOUNT</span>
+</span><span class='line'><span class="nb">puts</span> <span class="ss">Pilot</span><span class="p">:</span><span class="ss">:LIFE_INSURANCE_AMOUNT</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; 300_000</span>
+</span><span class='line'><span class="c1"># =&gt; 150_000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Results might seem strange at first, but please remember the full search path:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="no">Module</span><span class="o">.</span><span class="n">nesting</span> <span class="o">+</span> <span class="no">Module</span><span class="o">.</span><span class="n">ancestors</span><span class="o">].</span><span class="n">uniq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First comes the lexical scope searching and only after the inheritance chain, where mixins are inserted between
+child and parent classes. Also, when Ruby finds a constant with a given name, it stops looking further.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[jQuery inputmask plugin + AngularJS]]></title>
@@ -27,7 +398,7 @@
 
 <p>I added the neccessary code:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -40,7 +411,7 @@
 
 
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -77,7 +448,7 @@
 
 <p>Having prepared myself with <a href="http://docs.angularjs.org/guide/directive">the documentation on the subject</a>, I wrote version #1:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -102,14 +473,14 @@
 
 <p>And the html:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;input</span> <span class="na">input-mask=</span><span class="s">&quot;{mask: &#39;+7(999)999-99-99&#39;}&quot;</span> <span class="na">ng-model=</span><span class="s">&quot;application.phone&quot;</span><span class="nt">/&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>Refreshing the browser, I saw the working mask, but the <code>$scope.application</code> was still <code>undefined</code> after filling in the phone, i.e mask was correctly initialized but the value never propagated to the controller. So I added some jQuery into the directive:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -143,7 +514,7 @@
 <p>How do I get rid of hardcoded bindings? We can access the value of <code>ng-model</code> attribute and set
 the appropriate scope value:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -213,7 +584,7 @@ the appropriate scope value:</p>
 
 <p>On my laptop browser the values are:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -373,7 +744,7 @@ If your traffic mostly comes from desktops and you&rsquo;re OK with 10-12% of fa
 <p>In JavaScript there is no built-in way of checking the existence of a variable.
 You can try testing the existence with <code>if(variable){...}</code> but it won&rsquo;t work in these cases:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -410,7 +781,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>The correct way to test if variable was both declared and initialized:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="s1">&#39;undefined&#39;</span> <span class="o">&amp;&amp;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">){</span>
@@ -421,14 +792,14 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>You may be tempted to use direct comparison with <code>undefined</code>:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">variable</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="p">...</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8)  <code>undefined</code> can be overwritten:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -446,7 +817,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 <p>CoffeeScript has a syntactic shortcut for testing existence:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="k">if</span> <span class="nx">variable</span><span class="o">?</span>
 </span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s">&#39;variable is both declared and initialized with a non-null value&#39;</span><span class="p">);</span>
@@ -455,7 +826,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>This code will be transpiled to:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="s2">&quot;undefined&quot;</span> <span class="o">&amp;&amp;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
@@ -469,7 +840,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 <p>What if you want to initialize a variable only if it has not been already initialized?
 In JavaScript you&rsquo;d usually do something like:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -491,7 +862,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 <p>Such <em>cache on first call</em> pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">getUserLocale = </span><span class="nf">-&gt;</span>
 </span><span class='line'>  <span class="nx">@locale</span> <span class="o">?=</span> <span class="nx">DB</span><span class="p">.</span><span class="nx">getLocaleByUser</span><span class="p">(</span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">)</span>
@@ -502,7 +873,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 
 <p>This will be transpiled to roughly the same JS as above, using ternary operator:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">getUserLocale</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
@@ -514,7 +885,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 <p>What if you try to conditionally assign an undeclared variable? If you try this:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="c1"># abc is not declared </span>
 </span><span class='line'><span class="nx">abc</span> <span class="o">?=</span> <span class="mi">99</span>
@@ -532,7 +903,7 @@ This compile-time checking is very helpful, because it prevents a <code>Referenc
 <p>Chaining function calls is a great way to write terse yet fluent code.
 A good example is working with jQuery:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#header&#39;</span><span class="p">).</span><span class="nx">css</span><span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;#fadfad&#39;</span><span class="p">).</span><span class="nx">show</span><span class="p">(</span><span class="s1">&#39;slow&#39;</span><span class="p">).</span><span class="nx">off</span><span class="p">();</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -540,7 +911,7 @@ A good example is working with jQuery:</p>
 <p>This is made possible because these jQuery functions return a reference to <code>this</code>.
 But what if one of the function returns <code>null</code> or <code>undefined</code>?</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -549,7 +920,7 @@ But what if one of the function returns <code>null</code> or <code>undefined</co
 
 <p>A simple but ugly solution would be to use a lot of <code>if</code> checks:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -567,7 +938,7 @@ But what if one of the function returns <code>null</code> or <code>undefined</co
 <p>CoffeeScript has a safe way of accessing long property chains using <code>?.</code> variant of existential operator:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">zip = </span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="o">?</span><span class="p">.</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure>
 
@@ -575,7 +946,7 @@ But what if one of the function returns <code>null</code> or <code>undefined</co
 <p>This will either soak up the <code>null</code> or <code>undefined</code> references and safely return <code>undefined</code> or
 return the final property value. In our case the generated code looks like this:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span><span class="p">,</span> <span class="nx">_ref</span><span class="p">;</span>
@@ -590,14 +961,14 @@ return the final property value. In our case the generated code looks like this:
 <p>Calling a function safely works similarly:</p>
 
 <figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">noSuchFunction</span><span class="o">?</span><span class="p">()</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>This transpiles to:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">noSuchFunction</span> <span class="o">===</span> <span class="s1">&#39;function&#39;</span><span class="p">)</span> <span class="p">{</span>
@@ -612,14 +983,14 @@ It does this using <code>typeof bla === 'function'</code>. The function is calle
 <p>Safe function invocation can be chained as well with other function or property calls:</p>
 
 <figure class='code'><figcaption><span>example from coffeescript.org </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span><span class="o">?</span><span class="p">().</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>This transpiles to:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -656,7 +1027,7 @@ You might try to set them in mailer:</p>
 
 
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -677,7 +1048,7 @@ You might try to set them in mailer:</p>
 
 <p>Instead, set them for the email instance:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -703,7 +1074,7 @@ You might try to set them in mailer:</p>
     <id>http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust</id>
     <content type="html"><![CDATA[<p>Since all rust hello world tutorials usually start like this:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
@@ -719,7 +1090,7 @@ You might try to set them in mailer:</p>
 
 <p>The solution:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>

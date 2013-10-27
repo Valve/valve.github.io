@@ -4,7 +4,7 @@
   <title><![CDATA[Category: rust | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/rust/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-08-01T16:16:31+04:00</updated>
+  <updated>2013-10-27T12:50:43+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -19,7 +19,7 @@
     <updated>2013-07-03T13:31:00+04:00</updated>
     <id>http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust</id>
     <content type="html"><![CDATA[<p>Since all rust hello world tutorials usually start like this:
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
@@ -33,7 +33,7 @@
 
 
 <p>The solution:
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>

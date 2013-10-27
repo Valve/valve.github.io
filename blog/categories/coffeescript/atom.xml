@@ -4,7 +4,7 @@
   <title><![CDATA[Category: coffeescript | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/coffeescript/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2013-08-01T16:16:31+04:00</updated>
+  <updated>2013-10-27T12:50:43+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -28,7 +28,7 @@
 <p>In JavaScript there is no built-in way of checking the existence of a variable.
 You can try testing the existence with <code>if(variable){...}</code> but it won&rsquo;t work in these cases:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -64,7 +64,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>The correct way to test if variable was both declared and initialized:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="kc">undefined</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;</span> <span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">){</span>
@@ -74,13 +74,13 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>You may be tempted to use direct comparison with <code>undefined</code>:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span><span class="p">(</span><span class="nx">variable</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">&amp;</span><span class="nx">hellip</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>But this is asking for trouble because in EcmaScript 3 (all older browsers, such as IE 6-8)  <code>undefined</code> can be overwritten:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -97,7 +97,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 <p>CoffeeScript has a syntactic shortcut for testing existence:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="k">if</span> <span class="nx">variable</span><span class="o">?</span>
 </span><span class='line'>  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="nx">variable</span> <span class="o">is</span> <span class="nx">both</span> <span class="nx">declared</span> <span class="o">and</span> <span class="nx">initialized</span> <span class="nx">with</span> <span class="nx">a</span> <span class="nx">non</span><span class="o">-</span><span class="kc">null</span> <span class="nx">value</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;);</span>
@@ -105,7 +105,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 
 <p>This code will be transpiled to:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="o">&amp;</span><span class="nx">ldquo</span><span class="p">;</span><span class="kc">undefined</span><span class="o">&amp;</span><span class="nx">rdquo</span><span class="p">;</span> <span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span><span class="o">&amp;</span><span class="nx">amp</span><span class="p">;</span> <span class="nx">variable</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
@@ -118,7 +118,7 @@ You can try testing the existence with <code>if(variable){...}</code> but it won
 <p>What if you want to initialize a variable only if it has not been already initialized?
 In JavaScript you&rsquo;d usually do something like:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -153,7 +153,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 <p>Such <em>cache on first call</em> pattern is widely used in many programming languages, but CoffeeScript has a special syntax for it:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -171,7 +171,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 
 <p>This will be transpiled to roughly the same JS as above, using ternary operator:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">getUserLocale</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
@@ -182,7 +182,7 @@ The important part is comparing with <code>null</code> using <code>==</code>, ra
 <p>What if you try to conditionally assign an undeclared variable? If you try this:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -204,7 +204,7 @@ This compile-time checking is very helpful, because it prevents a <code>Referenc
 
 <p>Chaining function calls is a great way to write terse yet fluent code.
 A good example is working with jQuery:
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="o">&lt;</span><span class="err">/p&gt;</span>
@@ -215,7 +215,7 @@ A good example is working with jQuery:
 <p>This is made possible because these jQuery functions return a reference to <code>this</code>.
 But what if one of the function returns <code>null</code> or <code>undefined</code>?</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span> <span class="o">=</span> <span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">address</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
@@ -223,7 +223,7 @@ But what if one of the function returns <code>null</code> or <code>undefined</co
 
 <p>A simple but ugly solution would be to use a lot of <code>if</code> checks:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -239,14 +239,14 @@ But what if one of the function returns <code>null</code> or <code>undefined</co
 
 <p>CoffeeScript has a safe way of accessing long property chains using <code>?.</code> variant of existential operator:
 <div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nv">zip = </span><span class="nx">User</span><span class="p">.</span><span class="nx">current</span><span class="o">?</span><span class="p">.</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>This will either soak up the <code>null</code> or <code>undefined</code> references and safely return <code>undefined</code> or
 return the final property value. In our case the generated code looks like this:</p>
 
-<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">zip</span><span class="p">,</span> <span class="nx">_ref</span><span class="p">;</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
@@ -260,12 +260,12 @@ return the final property value. In our case the generated code looks like this:
 <p>Calling a function safely works similarly:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>CoffeeScript </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">noSuchFunction</span><span class="o">?</span><span class="p">()</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>This transpiles to:
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 </pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">noSuchFunction</span> <span class="o">===</span> <span class="o">&amp;</span><span class="nx">lsquo</span><span class="p">;</span><span class="kd">function</span><span class="o">&amp;</span><span class="nx">rsquo</span><span class="p">;)</span> <span class="p">{</span>
@@ -279,12 +279,12 @@ It does this using <code>typeof bla === 'function'</code>. The function is calle
 <p>Safe function invocation can be chained as well with other function or property calls:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>example from coffeescript.org </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='coffeescript'><span class='line'><span class="nx">lottery</span><span class="p">.</span><span class="nx">drawWinner</span><span class="o">?</span><span class="p">().</span><span class="nx">address</span><span class="o">?</span><span class="p">.</span><span class="nx">zip</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>This transpiles to:
-<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>

@@ -112,7 +112,7 @@
 
 <p>I added the neccessary code:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -125,7 +125,7 @@
 
 
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -162,7 +162,7 @@
 
 <p>Having prepared myself with <a href="http://docs.angularjs.org/guide/directive">the documentation on the subject</a>, I wrote version #1:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -187,14 +187,14 @@
 
 <p>And the html:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;input</span> <span class="na">input-mask=</span><span class="s">&quot;{mask: &#39;+7(999)999-99-99&#39;}&quot;</span> <span class="na">ng-model=</span><span class="s">&quot;application.phone&quot;</span><span class="nt">/&gt;</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>Refreshing the browser, I saw the working mask, but the <code>$scope.application</code> was still <code>undefined</code> after filling in the phone, i.e mask was correctly initialized but the value never propagated to the controller. So I added some jQuery into the directive:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -228,7 +228,7 @@
 <p>How do I get rid of hardcoded bindings? We can access the value of <code>ng-model</code> attribute and set
 the appropriate scope value:</p>
 
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
@@ -308,6 +308,8 @@ the appropriate scope value:</p>
         <a class="basic-alignment left" href="/blog/2013/07/14/anonymous-browser-fingerprinting/" title="Previous Post: anonymous browser fingerprinting">&laquo; anonymous browser fingerprinting</a>
       
       
+        <a class="basic-alignment right" href="/blog/2013/10/26/constant-resolution-in-ruby/" title="Next Post: Constant resolution in Ruby">Constant resolution in Ruby &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -327,6 +329,10 @@ the appropriate scope value:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2013/10/26/constant-resolution-in-ruby/">Constant Resolution in Ruby</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/">jQuery Inputmask Plugin + AngularJS</a>
       </li>
     
@@ -340,10 +346,6 @@ the appropriate scope value:</p>
     
       <li class="post">
         <a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/07/03/reading-command-line-arguments-in-rust/">Reading Command Line Arguments in Rust</a>
       </li>
     
   </ul>

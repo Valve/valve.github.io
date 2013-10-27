@@ -1,0 +1,614 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Constant resolution in Ruby - valve's</title>
+  <meta name="author" content="valve">
+
+  
+  <meta name="description" content="Ruby constant resolution has always been somewhat confusing to me.
+In this article I&rsquo;m going to demistify it for myself and hopefully help &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="valve's" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-42202458-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">valve's</a></h1>
+  
+    <h2>corner</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:valve.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Constant Resolution in Ruby</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-26T11:47:00+04:00" pubdate data-updated="true">Oct 26<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Ruby constant resolution has always been somewhat confusing to me.
+In this article I&rsquo;m going to demistify it for myself and hopefully help other readers.</p>
+
+<!--more-->
+
+
+<p></p>
+
+<h2>What is a constant?</h2>
+
+<p>Ruby constant is anything that starts with a capital.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">PI</span> <span class="o">=</span> <span class="mi">3</span><span class="o">.</span><span class="mi">1415</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">MINUTES_IN_ONE_HOUR</span> <span class="o">=</span> <span class="mi">60</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">LOOK_MA</span> <span class="o">=</span> <span class="s2">&quot;I&#39;m a constant!&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">A</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">Screen::Widget::Button</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Yes, regular <code>ALL_CAPITAL</code> are constants, module and class names are constants too.</p>
+
+<h2>How Ruby searches constants.</h2>
+
+<p>When Ruby tries to resolve a constant, it starts looking in current lexical scope by searching the current module or class. If it can&rsquo;t find it there, it searches the enclosing scope and so on.</p>
+
+<p>It&rsquo;s easy to see the lexical scopes search chain with <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-c-nesting">Module::nesting</a> method:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">A</span>
+</span><span class='line'>  <span class="no">A_CONSTANT</span> <span class="o">=</span> <span class="s1">&#39;I am defined in module A&#39;</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">B</span>
+</span><span class='line'>    <span class="k">module</span> <span class="nn">C</span>
+</span><span class='line'>      <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inspect_nesting</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="nb">puts</span> <span class="no">Module</span><span class="o">.</span><span class="n">nesting</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'>        <span class="nb">puts</span> <span class="no">A_CONSTANT</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">A</span><span class="p">:</span><span class="ss">:B</span><span class="o">::</span><span class="n">C</span><span class="o">.</span><span class="n">inspect_nesting</span>
+</span><span class='line'><span class="c1"># =&gt; [A::B::C, A::B, A]</span>
+</span><span class='line'><span class="c1"># =&gt; I am defined in module A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>Module::nesting</code> returns an array of searcheable lexical scopes, starting from current.
+In above case the search for <code>A_CONSTANT</code> starts from module C, then goes to enclosing scope &ndash; module B, and then to module A where it finally finds it.</p>
+
+<h2>Nesting modules using alternative syntax</h2>
+
+<p>You&rsquo;ve probably seen the alternative way of defining the enclosing modules:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Screen</span>
+</span><span class='line'>  <span class="no">DEFAULT_RESOLUTION</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">768</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">module</span> <span class="nn">Widgets</span>
+</span><span class='line'>    <span class="k">module</span> <span class="nn">MacOS</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># Alternative syntax</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">module</span> <span class="nn">Screen::Widgets::MacOS::Button</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inspect_nesting</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="no">Module</span><span class="o">.</span><span class="n">nesting</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="no">DEFAULT_RESOLUTION</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Screen</span><span class="p">:</span><span class="ss">:Widgets</span><span class="o">::</span><span class="ss">MacOS</span><span class="p">:</span><span class="ss">:Button</span><span class="o">.</span><span class="n">inspect_nesting</span>
+</span><span class='line'><span class="c1"># =&gt; [Screen::Widgets::MacOS::Button]</span>
+</span><span class='line'><span class="ss">NameError</span><span class="p">:</span> <span class="n">uninitialized</span> <span class="n">constant</span> <span class="ss">Screen</span><span class="p">:</span><span class="ss">:Widgets</span><span class="o">::</span><span class="ss">MacOS</span><span class="p">:</span><span class="ss">:Button</span><span class="o">::</span><span class="no">DEFAULT_RESOLUTION</span>
+</span><span class='line'>  <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">26</span><span class="ss">:in</span> <span class="sb">`inspect_nesting&#39;</span>
+</span><span class='line'><span class="sb">  from (irb):29</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>See the difference?  Constant resolution only uses the innermost module for searching, ignoring the enclosing scopes. By defining the modules with this shorter syntax you lose the ability to search for constants in enclosing scopes.</p>
+
+<h2>Inheritance</h2>
+
+<p>Enclosing scopes is the first place where Ruby searches the constants. Second place is the inheritance hierarchy. Consider this code:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">DRIVING_LICENSE_AGE</span> <span class="o">=</span> <span class="mi">18</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">BusDriver</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">can_drive_from</span>
+</span><span class='line'>    <span class="no">DRIVING_LICENSE_AGE</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">bus_driver</span> <span class="o">=</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">bus_driver</span><span class="o">.</span><span class="n">can_drive_from</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; 18</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Mixins</h3>
+
+<p>Ruby can mixin modules into classes as an alternative to inheritance. When a class mixes in a module, this module inserts itself between the class being mixed in and the parent class in the inheritance hierarchy. The simple way to see this is using <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-ancestors">ancestors</a> method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Insurable</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">150_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">DRIVING_LICENSE_AGE</span> <span class="o">=</span> <span class="mi">18</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">BusDriver</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Insurable</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">can_drive_from</span>
+</span><span class='line'>    <span class="s2">&quot;Can drive from </span><span class="si">#{</span><span class="no">DRIVING_LICENSE_AGE</span><span class="si">}</span><span class="s2">, with life insurance of $</span><span class="si">#{</span><span class="no">LIFE_INSURANCE_AMOUNT</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">ancestors</span><span class="o">.</span><span class="n">inspect</span>
+</span><span class='line'><span class="nb">puts</span> <span class="no">BusDriver</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">can_drive_from</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; [BusDriver, Insurable, Person, Object, Kernel, BasicObject]</span>
+</span><span class='line'><span class="c1"># =&gt; Can drive from 18, with life insurance of $150000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What&rsquo;s going on here? We&rsquo;ve defined a base class <code>Person</code>, a child class <code>BusDriver</code> that inherits from <code>Person</code>. We also defined a <code>Insurable</code> module which we mixed into our <code>BusDriver</code> class. When we call the <code>ancestors</code> class method, we see the <code>BusDriver</code> class first, then <code>Insurable</code> module which was wedged between <code>BusDriver</code> and <code>Person</code>. Then goes the <code>Person</code> class, then, obviously, <code>Object</code>. This is all nice and clear.</p>
+
+<p>But why do we see <code>Kernel</code> between <code>Object</code> and <code>BasicObject</code>? This is because <code>Kernel</code> is a module that is mixed into <code>Object</code> thus inserting itself into the inheritance hierarchy. This <code>ancestors</code> array is how the name resolution works throughout the inheritance chain.</p>
+
+<h2>Full search path</h2>
+
+<p>Now that you&rsquo;ve seen the inheritance part of the name search, you can see the full picture:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># searching from left to right</span>
+</span><span class='line'><span class="n">full_path</span> <span class="o">=</span> <span class="o">[</span><span class="no">Module</span><span class="o">.</span><span class="n">nesting</span> <span class="o">+</span> <span class="no">Module</span><span class="o">.</span><span class="n">ancestors</span><span class="o">].</span><span class="n">uniq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>const_missing method</h2>
+
+<p>When Ruby has finished searching the constants up the nesting and ancestors chain and didn&rsquo;t find it, it gives the calling code the last chance by calling the <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-const_missing">const_missing</a> method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Person</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">const_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;Oh me oh my, can&#39;t find the constant: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="ss">Person</span><span class="p">:</span><span class="ss">:LOL</span>
+</span><span class='line'><span class="c1"># =&gt; Oh me oh my, can&#39;t find the constant: LOL</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>NameError</h3>
+
+<p>This error is called when Ruby can&rsquo;t find the constant and there is no <code>const_missing</code> method defined.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Object</span><span class="p">:</span><span class="ss">:BLASTER</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; NameError: uninitialized constant BLASTER</span>
+</span><span class='line'>  <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">8</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Word about autoloading</h2>
+
+<p>Let&rsquo;s say you&rsquo;d like to be flexible about your constants and load them automatically, following some naming convention?  Turns out, there is a way, it&rsquo;s called autoloading.</p>
+
+<p>If we were to implememt autoloading from scratch, it would be something like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nc">Object</span><span class="o">.</span><span class="nf">const_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>  <span class="vi">@looked_for</span> <span class="o">||=</span> <span class="p">{}</span>
+</span><span class='line'>  <span class="n">str_name</span> <span class="o">=</span> <span class="nb">name</span><span class="o">.</span><span class="n">to_s</span>
+</span><span class='line'>  <span class="k">raise</span> <span class="s2">&quot;Class not found: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="vi">@looked_for</span><span class="o">[</span><span class="n">str_name</span><span class="o">]</span>
+</span><span class='line'>  <span class="vi">@looked_for</span><span class="o">[</span><span class="n">str_name</span><span class="o">]</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>  <span class="n">file</span> <span class="o">=</span> <span class="n">str_name</span><span class="o">.</span><span class="n">downcase</span>
+</span><span class='line'>  <span class="nb">require</span> <span class="n">file</span>
+</span><span class='line'>  <span class="n">klass</span> <span class="o">=</span> <span class="nb">const_get</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">klass</span> <span class="k">if</span> <span class="n">klass</span>
+</span><span class='line'>  <span class="k">raise</span> <span class="s2">&quot;Class not found: </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Turns out, we don&rsquo;t have to, because autoloading is built into Ruby. We have <a href="http://ruby-doc.org/core-2.0.0/Kernel.html#method-i-autoload">Kernel#autoload</a>, <a href="http://ruby-doc.org/core-2.0.0/Module.html#method-i-autoload">Module#autoload</a> and more sophisticated <a href="http://api.rubyonrails.org/classes/ActiveSupport/Autoload.html">ActiveSupport::Autoload</a>. I&rsquo;m not going to cover these topics here but will try to do it in a future post.</p>
+
+<h2>Ambiguity</h2>
+
+<p>Here comes the tricky part: what if you have multiple constants with the same name?
+Consider this example:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">Insurable</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">150_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Person</span>
+</span><span class='line'>  <span class="no">LIFE_INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">50_000</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Pilot</span> <span class="o">&lt;</span> <span class="no">Person</span>
+</span><span class='line'>  <span class="no">INSURANCE_AMOUNT</span> <span class="o">=</span> <span class="mi">300_000</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">Insurable</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="ss">Pilot</span><span class="p">:</span><span class="ss">:INSURANCE_AMOUNT</span>
+</span><span class='line'><span class="nb">puts</span> <span class="ss">Pilot</span><span class="p">:</span><span class="ss">:LIFE_INSURANCE_AMOUNT</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># =&gt; 300_000</span>
+</span><span class='line'><span class="c1"># =&gt; 150_000</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Results might seem strange at first, but please remember the full search path:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="no">Module</span><span class="o">.</span><span class="n">nesting</span> <span class="o">+</span> <span class="no">Module</span><span class="o">.</span><span class="n">ancestors</span><span class="o">].</span><span class="n">uniq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First comes the lexical scope searching and only after the inheritance chain, where mixins are inserted between
+child and parent classes. Also, when Ruby finds a constant with a given name, it stops looking further.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">valve</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-26T11:47:00+04:00" pubdate data-updated="true">Oct 26<span>th</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby/" data-via="" data-counturl="http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/" title="Previous Post: jQuery inputmask plugin + AngularJS">&laquo; jQuery inputmask plugin + AngularJS</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/10/26/constant-resolution-in-ruby/">Constant Resolution in Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/">jQuery Inputmask Plugin + AngularJS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/07/03/different-smtp-settings-for-actionmailer-action/">Different SMTP Settings for ActionMailer Action</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - valve -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iamvalentin';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby/';
+        var disqus_url = 'http://valve.github.io/blog/2013/10/26/constant-resolution-in-ruby/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
