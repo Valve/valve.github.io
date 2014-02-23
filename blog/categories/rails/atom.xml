@@ -4,7 +4,7 @@
   <title><![CDATA[Category: rails | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/rails/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-02-23T10:20:45+04:00</updated>
+  <updated>2014-02-23T18:53:13+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -42,7 +42,7 @@ I&rsquo;ll be using long views, JavaScript inside ERB templates and what not.
 The point is to make a small but complete application in a single article
 and it is possible to do so only by keeping it really simple.</em></p>
 
-<p>OK, engough talk, let&rsquo;s build the app!</p>
+<p>OK, enough talk, let&rsquo;s build the app!</p>
 
 <p>Let&rsquo;s call this app <code>Neibo</code>:</p>
 
