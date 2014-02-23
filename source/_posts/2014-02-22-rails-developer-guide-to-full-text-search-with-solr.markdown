@@ -27,7 +27,7 @@ I'll be using long views, JavaScript inside ERB templates and what not.
 The point is to make a small but complete application in a single article
 and it is possible to do so only by keeping it really simple._
 
-OK, engough talk, let's build the app!
+OK, enough talk, let's build the app!
 
 Let's call this app `Neibo`: 
 
