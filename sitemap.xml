@@ -27,12 +27,18 @@
         <lastmod>2014-02-22T14:50:59+04:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/
+        </loc>
+        <lastmod>2014-02-23T10:19:45+04:00</lastmod>
+    </url>
+    <url>
         <loc>http://valve.github.io/blog/archives/</loc>
-        <lastmod>2014-02-22T14:50:59+04:00</lastmod>
+        <lastmod>2014-02-23T10:19:45+04:00</lastmod>
     </url>
     <url>
         <loc>http://valve.github.io/</loc>
-        <lastmod>2014-02-22T14:50:59+04:00</lastmod>
+        <lastmod>2014-02-23T10:19:45+04:00</lastmod>
     </url>
     <url>
         <loc>http://valve.github.io/robots.txt</loc>

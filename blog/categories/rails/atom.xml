@@ -4,7 +4,7 @@
   <title><![CDATA[Category: rails | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/rails/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-02-22T15:00:23+04:00</updated>
+  <updated>2014-02-23T10:20:45+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,1040 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to full text search for Rails developers]]></title>
+    <link href="http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/"/>
+    <updated>2014-02-22T15:05:00+04:00</updated>
+    <id>http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr</id>
+    <content type="html"><![CDATA[<p>Every developer heard about full-text search.</p>
+
+<p>Most developers search with SQL and relational databases.</p>
+
+<p>Almost every developer knows somewhere deep that full-text search is better suited for searching text, but keeps using old <code>LIKE '%?%'</code> queries.</p>
+
+<p>I&rsquo;ve been one of those developers who never looked at full-text search,
+but I have changed and I invite other people to join me in this change
+and discover the other side of search with Solr.</p>
+
+<!--more-->
+
+
+<p></p>
+
+<p>This article assumes you&rsquo;re comfortable with Ruby, Rails and PostgreSQL. I&rsquo;ll build a simple <em>people near me</em> application using Solr in small incremental steps and hopefully help readers to
+overcome the feeling of uncomfortable uneasiness when thinking about full text search technology.</p>
+
+<p><strong>A word of disclaimer:</strong> <em>my goal here is to familiarize a reader with full-text searching,
+not create an ideal rails application structure.
+I&rsquo;ll be using long views, JavaScript inside ERB templates and what not.
+The point is to make a small but complete application in a single article
+and it is possible to do so only by keeping it really simple.</em></p>
+
+<p>OK, engough talk, let&rsquo;s build the app!</p>
+
+<p>Let&rsquo;s call this app <code>Neibo</code>:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>➜  personal  ruby -v
+</span><span class='line'>ruby 2.0.0p353 (2013-11-22 revision 43784) [x86_64-darwin13.0.0]
+</span><span class='line'>➜  personal  rails -v
+</span><span class='line'>Rails 4.0.2
+</span><span class='line'>➜  personal  rails new neibo&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>  create  
+</span><span class='line'>  create  README.rdoc
+</span><span class='line'>  create  Rakefile
+</span><span class='line'>  create  config.ru
+</span><span class='line'>  create  .gitignore
+</span><span class='line'>  create  Gemfile
+</span><span class='line'>  create  app
+</span><span class='line'>  ...
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Let&rsquo;s remove the <code>sqlite3</code>, <code>turbolinks</code>, <code>coffee-rails</code>, <code>jbuilder</code> and <code>jquery-rails</code> gems,
+we will not need them. We should also add a <code>pg</code> gem to talk to Postgres DB.</p>
+
+<p>My Gemfile now is:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>source &lsquo;&lt;a href="https://rubygems.org">https://rubygems.org&lt;/a>&rsquo;&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p>gem &lsquo;rails&rsquo;, &lsquo;4.0.2&rsquo;
+</span><span class='line'>gem &lsquo;pg&rsquo;
+</span><span class='line'>gem &lsquo;sass-rails&rsquo;, &lsquo;~> 4.0.0&rsquo;
+</span><span class='line'>gem &lsquo;uglifier&rsquo;, &lsquo;>= 1.3.0&rsquo;&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now you need to set the pg connection in <code>config/database.yml</code> file:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;h1&gt;config/database.yml&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;common</span><span class="p-Indicator">:</span> <span class="nl">&amp;amp</span><span class="l-Scalar-Plain">;common</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">adapter</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">postgresql</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">encoding</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">unicode</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">pool</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">5</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">timeout</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">5000</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">min_messages</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">warning&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;development</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="nl">&amp;lt</span><span class="l-Scalar-Plain">;&amp;lt;</span><span class="p-Indicator">:</span> <span class="nv">*common</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">database</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">neibo&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;test</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="nl">&amp;lt</span><span class="l-Scalar-Plain">;&amp;lt;</span><span class="p-Indicator">:</span> <span class="nv">*common</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">database</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">neibo_test&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="l-Scalar-Plain">&lt;p&gt;production</span><span class="p-Indicator">:</span>
+</span><span class='line'>  <span class="nl">&amp;lt</span><span class="l-Scalar-Plain">;&amp;lt;</span><span class="p-Indicator">:</span> <span class="nv">*common</span>
+</span><span class='line'>  <span class="l-Scalar-Plain">database</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">neibo_production</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Then let&rsquo;s create a <code>Person</code> model and generate a migration for it:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/mo</span><span class="n">dels</span><span class="o">/</span><span class="n">person</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;class Person &amp;lt; ActiveRecord::Base</span>
+</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rails g migration create_people&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>  invoke  active_record
+</span><span class='line'>  create    db/migrate/20140222113048_create_people.rb
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;db/mi</span><span class="n">grate</span><span class="o">/</span><span class="mi">20140222113048</span><span class="n">_create_people</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;class CreatePeople &amp;lt; ActiveRecord::Migration</span>
+</span><span class='line'><span class="sr">  def change&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">create_table</span> <span class="ss">:people</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">string</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">null</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">text</span> <span class="ss">:about</span><span class="p">,</span> <span class="ss">null</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">string</span> <span class="ss">:likes</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">string</span> <span class="ss">:dislikes</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">float</span> <span class="ss">:lat</span><span class="p">,</span> <span class="ss">null</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">float</span> <span class="ss">:lon</span><span class="p">,</span> <span class="ss">null</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">t</span><span class="o">.</span><span class="n">timestamps</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>So for every person we store a <code>name</code>,
+an <code>about</code> &ndash; this is where a person can tell the world about himself,
+<code>likes</code> &ndash; stuff person likes and <code>dislikes</code>.
+We also want to store a person&rsquo;s location, so that other people could find him in certain radius.</p>
+
+<p>We store a location using two <a href="http://www.postgresql.org/docs/9.3/static/datatype-numeric.html#DATATYPE-FLOAT">floating point</a> numbers, <code>lat</code> &ndash; for latitude, and <code>lon</code> &ndash; for longitude.
+It&rsquo;s quite possible to use a
+specialized <a href="http://www.postgresql.org/docs/current/static/datatype-geometric.html#AEN6547">Point</a> data type, but I want to keep it simple here.</p>
+
+<p>I make <code>lat</code> &amp; <code>lon</code> attributes nullable in case a user
+denies the browser geolocation permission and his profile is saved without those values.</p>
+
+<p>Let&rsquo;s create the databases and run the migration.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rake db:create
+</span><span class='line'>➜  neibo  rake db:migrate
+</span><span class='line'>==  CreatePeople: migrating ===================================================
+</span><span class='line'>&mdash; create_table(:people)
+</span><span class='line'>   &ndash;> 0.0080s
+</span><span class='line'>==  CreatePeople: migrated (0.0080s) ==========================================</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>We now need to create a controller, a route and a view:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">people_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;class PeopleController &amp;lt; ApplicationController</span>
+</span><span class='line'><span class="sr">  def index</span>
+</span><span class='line'><span class="sr">  end</span>
+</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;config/</span><span class="n">routes</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;Neibo::Application.routes.draw do</span>
+</span><span class='line'><span class="sr">  root to: &amp;lsquo;people#index&amp;rsquo;</span>
+</span><span class='line'><span class="sr">  resources :people</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><code>app/views/people/index.html.erb</code>
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">&amp;lt;% if flash[:alert].present? </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &lt;h1 style=&quot;color:red&quot;&gt;&amp;lt;%= flash[:alert] </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% if current_user </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &lt;h2&gt;Hello, &amp;lt;%= current_user.name </span><span class="err">%&gt;</span><span class="x">&lt;/h2&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;h3&gt;Search people near you: &lt;/h3&gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;%= form_tag people_path, method: :get do </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;&amp;lt;div&amp;gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;%= text_field_tag :search, params[:search], </span>
+</span><span class='line'><span class="x">  placeholder: &#39;Search nearby people&#39;, type: :search, style: &#39;width: 400px&#39; %&amp;gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;label&amp;gt;Search within mile radius:</span>
+</span><span class='line'><span class="x">    &amp;lt;%= select_tag :radius, options_for_select([10, 50, 100]) %&amp;gt;</span>
+</span><span class='line'><span class="x">  &amp;lt;/label&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;div&amp;gt;&amp;lt;%= submit_tag &#39;Search&#39; %&amp;gt;&amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% else </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &lt;h2&gt;Hello, guest&lt;/h2&gt;</span>
+</span><span class='line'><span class="x">  &lt;h3&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Fill your profile so that people could find you. </span>
+</span><span class='line'><span class="x">Allow browser to access your location if you want to be found by people near you.</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &lt;/h3&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;%= form_for @new_person do |f| </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;&amp;lt;div&amp;gt; &amp;lt;%= f.text_field :name, placeholder: &#39;Enter your name&#39; %&amp;gt; &amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;div&amp;gt; &amp;lt;%= f.text_area :about, placeholder: &#39;Tell about yourself&#39; %&amp;gt; &amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;div&amp;gt; &amp;lt;%= f.text_field :likes, placeholder: &#39;Stuff you like&#39; %&amp;gt; &amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;div&amp;gt; &amp;lt;%= f.text_field :dislikes, placeholder: &#39;Stuff you don\&#39;t &#39; %&amp;gt; &amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&amp;lt;div&amp;gt; &amp;lt;%= f.submit &#39;Save&#39; %&amp;gt; &amp;lt;/div&amp;gt;</span>
+</span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;  &amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This UI is a two part thing: if a user has already filled his details,
+he can use the search form and search for people nearby.
+If this is a new user, he fills his details, optionally allows a browser to get his location and
+saves the profile in the database.</p>
+
+<p>We now need to modify the <code>app/assets/javascripts/application.js</code> and remove the files we&rsquo;re not using. In my case I remove them all and leave the <code>application.js</code> empty.</p>
+
+<p>The view code checks the <code>current_user</code> method to see if current user profile has been filled.
+Let&rsquo;s create this method:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">application_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;class ApplicationController &amp;lt; ActionController::Base</span>
+</span><span class='line'><span class="sr">  protect_from_forgery with: :exception</span>
+</span><span class='line'><span class="sr">  helper_method :current_user&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="kp">private</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  def current_user&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="vi">@current_user</span> <span class="o">||=</span> <span class="no">Person</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">session</span><span class="o">[</span><span class="ss">:current_user_id</span><span class="o">]</span><span class="p">)</span> <span class="k">if</span> <span class="n">session</span><span class="o">[</span><span class="ss">:current_user_id</span><span class="o">]</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>I&rsquo;ll be storing current user ID in session and get the information about
+the user from the database.</p>
+
+<p>OK, let&rsquo;s concentrate on the <code>new user</code> scenario. In order for the application to know about user&rsquo;s location, we need to grab it from browser and save.</p>
+
+<p>Adding the code to the view:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'>  <span class="nt">&lt;h2&gt;</span>Hello, guest<span class="nt">&lt;/h2&gt;</span>
+</span><span class='line'>  <span class="nt">&lt;h3&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span>Fill your profile so that people could find you.
+</span><span class='line'>Allow browser to access your location if you want to be found by people near you.
+</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="nt">&lt;/h3&gt;&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="ni">&amp;lt;</span>%= form_for @new_person do |f| %&gt;<span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>div<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>%= f.text_field :name, placeholder: &#39;Enter your name&#39; %<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>/div<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>div<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>%= f.text_area :about, placeholder: &#39;Tell about yourself&#39; %<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>/div<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>div<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>%= f.text_field :likes, placeholder: &#39;Stuff you like&#39; %<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>/div<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>div<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>%= f.text_field :dislikes, placeholder: &#39;Stuff you don\&#39;t &#39; %<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>/div<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>%= f.hidden_field :lat %<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>%= f.hidden_field :lon %<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>div<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>%= f.submit &#39;Save&#39; %<span class="ni">&amp;gt;</span> <span class="ni">&amp;lt;</span>/div<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>  <span class="ni">&amp;lt;</span>% end %&gt;
+</span><span class='line'>  <span class="nt">&lt;script&gt;</span><span class="o">&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">geolocation</span><span class="p">.</span><span class="nx">getCurrentPosition</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">position</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;#person_lat&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">position</span><span class="p">.</span><span class="nx">coords</span><span class="p">.</span><span class="nx">latitude</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;#person_lon&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">position</span><span class="p">.</span><span class="nx">coords</span><span class="p">.</span><span class="nx">longitude</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>  <span class="nt">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The lines we&rsquo;re interested in are:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;pre&gt;&lt;code&gt;</span><span class="ni">&amp;lt;</span>%= f.hidden_field :lat %<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="ni">&amp;lt;</span>%= f.hidden_field :lon %<span class="ni">&amp;gt;</span>
+</span><span class='line'><span class="nt">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nt">&lt;p&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>And the JavaScript:
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'>  <span class="o">&lt;</span><span class="nx">script</span><span class="o">&gt;&lt;</span><span class="err">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">pre</span><span class="o">&gt;&lt;</span><span class="nx">code</span><span class="o">&gt;</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">geolocation</span><span class="p">.</span><span class="nx">getCurrentPosition</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">position</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;#person_lat&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">position</span><span class="p">.</span><span class="nx">coords</span><span class="p">.</span><span class="nx">latitude</span><span class="p">;</span>
+</span><span class='line'>  <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="s1">&#39;#person_lon&#39;</span><span class="p">).</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">position</span><span class="p">.</span><span class="nx">coords</span><span class="p">.</span><span class="nx">longitude</span><span class="p">;</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'><span class="o">&lt;</span><span class="err">/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>  <span class="o">&lt;</span><span class="err">/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>When a view loads, JavaScripts asks a user for permission to get his location. If users agrees, the callback is called and the location is saved in hidden fields so that the form can
+submit them back to the server.</p>
+
+<p>Now the controller part:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">people_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;def index</span>
+</span><span class='line'><span class="sr">  @new_person = Person.new</span>
+</span><span class='line'><span class="sr">end&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">create</span>
+</span><span class='line'>  <span class="vi">@new_person</span> <span class="o">=</span> <span class="no">Person</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">person_params</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="vi">@new_person</span><span class="o">.</span><span class="n">save</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;session[:current_user_id] = @new_person.id</span>
+</span><span class='line'><span class="sr">redirect_to people_path</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;</span><span class="sr">/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  else&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">flash</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">alert</span> <span class="o">=</span> <span class="s1">&#39;Please fill your profile&#39;</span>
+</span><span class='line'><span class="n">render</span> <span class="ss">:index</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;private&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">def</span> <span class="nf">person_params</span>
+</span><span class='line'>  <span class="n">params</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="ss">:person</span><span class="p">)</span><span class="o">.</span><span class="n">permit</span><span class="p">(</span><span class="ss">:name</span><span class="p">,</span> <span class="ss">:about</span><span class="p">,</span> <span class="ss">:likes</span><span class="p">,</span> <span class="ss">:dislikes</span><span class="p">,</span> <span class="ss">:lat</span><span class="p">,</span> <span class="ss">:lon</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Here we have a boilerplate ruby code, we&rsquo;re using strong parameterss to only allow a known
+set of attributes.
+We then try to create a user and save the new user ID in the session.
+This way <code>current_user</code> helper method will be able to get the current user back from the
+database.
+If the validation fails, we just display the message and render the view again.</p>
+
+<p>Let&rsquo;s add those validations:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/mo</span><span class="n">dels</span><span class="o">/</span><span class="n">person</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;class Person &amp;lt; ActiveRecord::Base</span>
+</span><span class='line'><span class="sr">  validates :name, :about, :likes, :dislikes, presence: true</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Now when we go back to the browser and reload the page we can enter the profile data,
+allow browser to get our geolocation and click save.</p>
+
+<p>So far so good. At this point we introduced ourselves to
+the system and <code>current_user.id</code> is stored in the encrypted cookie.</p>
+
+<p>Next part is where the fun starts: we need to be able to search for other users nearby.
+We should be able to limit the search radius, specify the search term and see the results.</p>
+
+<p>What&rsquo;s important is that we should not see people who have our search term in <code>dislikes</code> attribute. For example if a person dislikes Chinese quisine, and we&rsquo;re searching for people
+who like it,&hellip; you get the idea.</p>
+
+<p>Let&rsquo;s take a little detour and speak about the Solr and the gems that enable it on Rails.
+We&rsquo;ll be using <a href="https://github.com/sunspot/sunspot">sunspot</a> &ndash; an excellent gem that
+adds a nice DSL (really, it&rsquo;s nice) on top of <a href="https://github.com/rsolr/rsolr">rsolr</a>.</p>
+
+<p>At this point you might be asking: <em>&ldquo;Wait! What&rsquo;s RSolr? I&rsquo;m now totally confused with Solr, RSolr and Sunspot and how they relate to each other&rdquo;</em>.
+I totally understand your confusion. Let&rsquo;s break this mess into pieces:</p>
+
+<ol>
+<li>Solr &ndash; a Java server that runs as a separate service and talks to the outside world
+via XML over HTTP API. It is generally considered a robust and full-featured, yet hard to learn
+full-text search solution. The only way you can communicate to Solr from Rails application
+directly is to send rather cryptic XML requests.</li>
+<li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around Solr HTTP API that allows interacting with Solr from Ruby code.</li>
+<li>However RSolr is still rather low-level and does not provide any DSL or convenience methods
+to define which Rails models should be searchable and how the indexes will be updated.
+The need for a new library was apparent, so the Sunspot was born. A really nice DSL that
+integrates directly into ActiveRecord models and allows to specify which attributes we need
+to index, how to transform and query the data.</li>
+</ol>
+
+
+<p>Now you&rsquo;re saying: &ldquo;<em>I still don&rsquo;t understand, if the Solr is a Java service it means
+I need to install and configure it on my system? That&rsquo;s a horrible perspective, get me out of this!</em>&rdquo;. Absolutely not. Sunspot gem is bundled with a development version of Solr and has a nice set of rake tasks to manage it. You can start, stop, reindex the data, all using rake tasks. There is no need to install Solr manually, all you need is to add two gems:</p>
+
+<p><code>sunspot_solr</code> and <code>sunspot_rails</code>.</p>
+
+<p><code>sunspot_solr</code> is the pre-packaged development version of Solr and <code>sunspot_rails</code>
+is the Sunspot gem itself. So you need to make sure you place the <code>sunspot_solr</code> into <code>:development</code> group in your Gemfile.</p>
+
+<p>OK, now that confusion is hopefully out of the way, let&rsquo;s continue with our people search
+scenario.</p>
+
+<p>Let us define the searchable attributes on our <code>Person</code> model:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Person</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+</span><span class='line'>  <span class="n">validates</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">:about</span><span class="p">,</span> <span class="ss">:likes</span><span class="p">,</span> <span class="ss">:dislikes</span><span class="p">,</span> <span class="ss">presence</span><span class="p">:</span> <span class="kp">true</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  searchable do&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">text</span> <span class="ss">:name</span><span class="p">,</span> <span class="ss">boost</span><span class="p">:</span> <span class="mi">5</span><span class="o">.</span><span class="mi">0</span>
+</span><span class='line'><span class="n">text</span> <span class="ss">:about</span><span class="p">,</span> <span class="ss">:likes</span>
+</span><span class='line'><span class="n">latlon</span><span class="p">(</span><span class="ss">:location</span><span class="p">)</span> <span class="p">{</span> <span class="ss">Sunspot</span><span class="p">:</span><span class="ss">:Util</span><span class="o">::</span><span class="no">Coordinates</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Let&rsquo;s break it down piece by piece:</p>
+
+<ol>
+<li><code>searchable</code> block is a place where you define the full-text indexing behavior.
+Inside this block you can specify various rules describing which attributes should
+be indexed, their pre-index transformations, facets, filters and so on.</li>
+<li><code>text :name</code> &ndash; person should be searchable by its name. By searchable I mean full-text searchable.</li>
+<li><code>boost: 5.0</code> &ndash; boost option tells Solr to prioritize the results found by this particular attribute. If you&rsquo;re searching for <code>John Doe</code>, all the people with such name will come first, and only after them those, who dislike Johns Doe (or John Does, I don&rsquo;t know which is correct).</li>
+<li><code>text :about, :likes</code> &ndash; person should be searchable by these attributes.</li>
+<li><code>latlon(:location) { Sunspot::Util::Coordinates.new(lat, lon) }</code> &ndash; create a geo-spatial
+index on person&rsquo;s location using <code>lat</code> and <code>lon</code> attributes. This will allow to search for
+people within a certain mile radius.</li>
+</ol>
+
+
+<p>Great, wasn&rsquo;t that simple? We&rsquo;ve defined a set of searchable attributes on a <code>Person</code> model.
+Now we&rsquo;re ready to actually search for people.</p>
+
+<p>Let us add a <code>_person</code> partial where search result item will be displayed:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">&amp;lt;%# app/views/people/_person.html.erb </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;div class=&quot;person&quot;&gt;</span>
+</span><span class='line'><span class="x"> &lt;h4&gt;</span><span class="cp">&lt;%=</span> <span class="n">person</span><span class="o">.</span><span class="n">name</span> <span class="cp">%&gt;</span><span class="x"> &lt;/h4&gt;</span>
+</span><span class='line'><span class="x"> &lt;h5&gt;About:&lt;/h5&gt;</span>
+</span><span class='line'><span class="x"> &lt;italic&gt;</span><span class="cp">&lt;%=</span> <span class="n">person</span><span class="o">.</span><span class="n">about</span> <span class="cp">%&gt;</span><span class="x">&lt;/italic&gt;</span>
+</span><span class='line'><span class="x"> &lt;h5&gt;Likes:&lt;/h5&gt;</span>
+</span><span class='line'><span class="x"> &lt;italic&gt;</span><span class="cp">&lt;%=</span> <span class="n">person</span><span class="o">.</span><span class="n">likes</span> <span class="cp">%&gt;</span><span class="x">&lt;/italic&gt;</span>
+</span><span class='line'><span class="x"> &lt;h5&gt;Dislikes:&lt;/h5&gt;</span>
+</span><span class='line'><span class="x"> &lt;italic&gt;</span><span class="cp">&lt;%=</span> <span class="n">person</span><span class="o">.</span><span class="n">dislikes</span> <span class="cp">%&gt;</span><span class="x">&lt;/italic&gt;</span>
+</span><span class='line'><span class="x">&lt;/div&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;hr/&gt;</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="x">&lt;p&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>We also need to add the iteration to the <code>index</code> view:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x">&amp;lt;%# app/views/people/index.html.erb </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% @people.each do |person| </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">  &amp;lt;%= render partial: &amp;lsquo;person&amp;rsquo;, locals: {person: person} </span><span class="err">%&gt;</span><span class="x"></span>
+</span><span class='line'><span class="x">&amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>So the view is ready, let&rsquo;s modify the controller code:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">people_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;def index</span>
+</span><span class='line'><span class="sr">  if current_user&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">if</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">].</span><span class="n">present?</span> <span class="o">||</span> <span class="n">params</span><span class="o">[</span><span class="ss">:radius</span><span class="o">].</span><span class="n">present?</span>
+</span><span class='line'>  <span class="n">search</span> <span class="o">=</span> <span class="no">Person</span><span class="o">.</span><span class="n">search</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">fulltext</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">has_location?</span>
+</span><span class='line'>      <span class="n">with</span><span class="p">(</span><span class="ss">:location</span><span class="p">)</span><span class="o">.</span><span class="n">in_radius</span><span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:radius</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="vi">@people</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">results</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="vi">@people</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">else</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;@new_person = Person.new</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;</span><span class="sr">/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  end</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>On line <code>3</code> we check if current user is saved, on line <code>4</code> we verify we have something to
+search by, either a search term or a radius. Then on lines <code>5 - 10</code> is where the actual
+full-text search happens. We use a <code>Model.search</code> method and pass it a block.
+Inside this block we need to specify the logic of the search.
+In our case we call <code>fulltext</code> method and pass it our search term.</p>
+
+<p>Let me be clear, we have two phases: <strong>indexing</strong> and <strong>searching</strong>. Indexing is defined
+inside a model in a <code>searchable</code> block. You use <code>text</code> method to specify which attributes
+should be full-text searchable.</p>
+
+<p>Searching is done by calling <code>Model.search</code> method and passing it a block too. But this time
+we call <code>fulltext</code> method to actually do full-text search on indexed attributes.</p>
+
+<p>OK, we know know how to do full-text search on text attributes, we&rsquo;re already doing it on
+<code>name</code>, <code>about</code> and <code>likes</code> attributes. What we also need is a way to restrict the results
+to a certain radius on a map. This is what lines <code>7 - 9</code> are for.</p>
+
+<p>In out application it&rsquo;s possible that user denies a geolocation permission and his
+profile is saved without coordinates. So we need a convenience method to see
+if current user has a location or not:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/mo</span><span class="n">dels</span><span class="o">/</span><span class="n">person</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;def has_location?</span>
+</span><span class='line'><span class="sr">  lat &amp;amp;&amp;amp; lon</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>This method is useful in <code>Person.search</code> block where we specify the search radius:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">people_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;if current_user.has_location?</span>
+</span><span class='line'><span class="sr">  with(:location).in_radius(current_user.lat, current_user.lon, params[:radius])</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>We&rsquo;re using current user&rsquo;s <code>lat</code> &amp; <code>lon</code> attributes and the radius from params to perform the
+filtering. You should remember to convert miles to kilimeters, because Sunspot operates on
+kilometers.</p>
+
+<p>OK, first version of the people search is ready to try, let&rsquo;s run it.</p>
+
+<p>Works fine, but when I search for someone within 10 mile radius, I find myself too.
+There should be a way to search for <em>other</em> people, excluding myself. Let&rsquo;s fix it.</p>
+
+<p>Sunspot allows using attributes as filters. For this we should call methods like <code>integer</code>,
+<code>string</code>, <code>datetime</code> etc. In this case we need to search for all people except those
+with <code>:id</code> equal to the <code>:id</code> of current user. We also need to filter out the people with
+<code>dislikes</code> equal to the search term:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/mo</span><span class="n">dels</span><span class="o">/</span><span class="n">person</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;searchable do</span>
+</span><span class='line'><span class="sr">  text :name, boost: 5.0</span>
+</span><span class='line'><span class="sr">  text :about, :likes</span>
+</span><span class='line'><span class="sr">  integer (:id)</span>
+</span><span class='line'><span class="sr">  string(:dislikes)</span>
+</span><span class='line'><span class="sr">  latlon(:location) { Sunspot::Util::Coordinates.new(lat, lon) }</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>On line <code>5</code> we&rsquo;re creating an indexed filter on <code>:id</code> column, and on the next line a filter on
+<code>:dislikes</code> column.</p>
+
+<p>Now the filtering itself:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;h1&gt;app/</span><span class="n">controllers</span><span class="o">/</span><span class="n">people_controller</span><span class="o">.</span><span class="n">rb</span><span class="o">&lt;</span><span class="sr">/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;def index</span>
+</span><span class='line'><span class="sr">  if current_user&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="k">if</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">].</span><span class="n">present?</span> <span class="o">||</span> <span class="n">params</span><span class="o">[</span><span class="ss">:radius</span><span class="o">].</span><span class="n">present?</span>
+</span><span class='line'>  <span class="n">search</span> <span class="o">=</span> <span class="no">Person</span><span class="o">.</span><span class="n">search</span> <span class="k">do</span>
+</span><span class='line'>    <span class="n">without</span><span class="p">(</span><span class="ss">:id</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">without</span><span class="p">(</span><span class="ss">:dislikes</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">]</span><span class="p">)</span> <span class="k">if</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">].</span><span class="n">present?</span>
+</span><span class='line'>    <span class="n">fulltext</span> <span class="n">params</span><span class="o">[</span><span class="ss">:search</span><span class="o">]</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">current_user</span><span class="o">.</span><span class="n">has_location?</span>
+</span><span class='line'>      <span class="n">with</span><span class="p">(</span><span class="ss">:location</span><span class="p">)</span><span class="o">.</span><span class="n">in_radius</span><span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">lat</span><span class="p">,</span> <span class="n">current_user</span><span class="o">.</span><span class="n">lon</span><span class="p">,</span> <span class="n">params</span><span class="o">[</span><span class="ss">:radius</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>  <span class="vi">@people</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">results</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="vi">@people</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>  <span class="k">else</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;pre&gt;&lt;code&gt;@new_person = Person.new</span>
+</span><span class='line'><span class="sr">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;</span><span class="sr">/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;  end</span>
+</span><span class='line'><span class="sr">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>On line <code>6</code> we&rsquo;re filtering out people with <code>:id</code> equal to current user&rsquo;s id.
+On line <code>7</code> we&rsquo;re filtering out people who dislike stuff I&rsquo;m searching for.</p>
+
+<p>What does <code>Person.search</code> return? It&rsquo;s a special Sunspot object that has a <code>results</code>
+method. So to grab actual active record items, we use <code>@people = search.results</code> code.</p>
+
+<p>Finally we have all pieces of the puzzle. If we run the app now we should be able to save
+current user&rsquo;s profile and then go search for other people.</p>
+
+<p>In this article I&rsquo;ve barely scratched the surface of the Solr &amp; Sunspot capabilities. You should definitely look for more in the documentation if you want to create a full-featured
+application.</p>
+
+<h3>By why should I use fulltext search if I can do everything in SQL?</h3>
+
+<p>You&rsquo;re right, except you can&rsquo;t.
+Full text search is a huge topic with a huge set of capabilities.
+It can do synonyms search, wildcard search, stemming
+and a <a href="https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters">lot, lot more</a>.</p>
+
+<p>Solr can be as intelligent as to perform a word decomposition during search, operate on
+word parts and generally behave as a human (almost).</p>
+
+<p>Full-text search is faster too. How much faster? This is a tricky question, because it all
+depends on the indexed data, but one can safely assume it can be at least several times
+faster than equivalent SQL searching. For complex searches Solr can be orders of magnitude
+faster than SQL.</p>
+
+<h3>How is new data indexed?</h3>
+
+<p>Sunspot handles it for you. It registers a set of hooks that trigger the automatic indexing
+of updated and new records. If you look into rails log, you&rsquo;ll see something like:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>SOLR Request (455.4ms)  [ path=update parameters={} ]
+</span><span class='line'>   (1.1ms)  COMMIT
+</span><span class='line'>Redirected to &lt;a href="http://localhost:3000/people">http://localhost:3000/people&lt;/a>
+</span><span class='line'>  SOLR Request (60.9ms)  [ path=update parameters={} ]</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<h3>How do I test it?</h3>
+
+<p>You should generally avoid touching Solr in unit tests. Either design your tests to avoid
+talking to Solr in unit tests, or just stub Solr to return pre-canned results.</p>
+
+<p>As for integration tests, indexing data before running them worked best for me.
+I first prepare some test data, then I reindex it with:
+<code>rake sunspot:reindex</code>
+and then run the integration tests.</p>
+
+<p>If you find the topic of testing interesting, drop me a line, I&rsquo;ll cover it in the next article.</p>
+
+<h3>Code</h3>
+
+<p><a href="https://github.com/Valve/neibo">https://github.com/Valve/neibo</a></p>
+
+<p>Well, I hope the explanation wasn&rsquo;t too packed, share your ideas in the comments :)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[different SMTP settings for ActionMailer action]]></title>
