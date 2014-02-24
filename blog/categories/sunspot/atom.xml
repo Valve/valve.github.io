@@ -4,7 +4,7 @@
   <title><![CDATA[Category: sunspot | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/sunspot/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-02-23T18:53:13+04:00</updated>
+  <updated>2014-02-24T11:30:34+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -18,15 +18,13 @@
     <link href="http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/"/>
     <updated>2014-02-22T15:05:00+04:00</updated>
     <id>http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr</id>
-    <content type="html"><![CDATA[<p>Every developer heard about full-text search.</p>
+    <content type="html"><![CDATA[<p>Every developer has heard of full-text search.However, most developers search with SQL and relational databases.</p>
 
-<p>Most developers search with SQL and relational databases.</p>
+<p>Almost every developer knows deep inside that full-text search is better suited for searching text, but continues to use old <code>LIKE '%?%'</code> queries.</p>
 
-<p>Almost every developer knows somewhere deep that full-text search is better suited for searching text, but keeps using old <code>LIKE '%?%'</code> queries.</p>
-
-<p>I&rsquo;ve been one of those developers who never looked at full-text search,
-but I have changed and I invite other people to join me in this change
-and discover the other side of search with Solr.</p>
+<p>I was one of those developers who never used full-text search,
+but I have changed and I invite others to join me and discover
+the other side of search with Solr.</p>
 
 <!--more-->
 
@@ -36,9 +34,9 @@ and discover the other side of search with Solr.</p>
 <p>This article assumes you&rsquo;re comfortable with Ruby, Rails and PostgreSQL. I&rsquo;ll build a simple <em>people near me</em> application using Solr in small incremental steps and hopefully help readers to
 overcome the feeling of uncomfortable uneasiness when thinking about full text search technology.</p>
 
-<p><strong>A word of disclaimer:</strong> <em>my goal here is to familiarize a reader with full-text searching,
+<p><strong>Disclaimer:</strong> <em>My goal here is to familiarize the reader with full-text search,
 not create an ideal rails application structure.
-I&rsquo;ll be using long views, JavaScript inside ERB templates and what not.
+I&rsquo;ll be using long views and JavaScript inside ERB templates.
 The point is to make a small but complete application in a single article
 and it is possible to do so only by keeping it really simple.</em></p>
 
@@ -81,10 +79,10 @@ and it is possible to do so only by keeping it really simple.</em></p>
 </span><span class='line'>
 </span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>Let&rsquo;s remove the <code>sqlite3</code>, <code>turbolinks</code>, <code>coffee-rails</code>, <code>jbuilder</code> and <code>jquery-rails</code> gems,
-we will not need them. We should also add a <code>pg</code> gem to talk to Postgres DB.</p>
+<p>Let&rsquo;s remove the <code>sqlite3</code>, <code>turbolinks</code>, <code>coffee-rails</code>, <code>jbuilder</code> and <code>jquery-rails</code> gems
+as we will not need them. We should also add the <code>pg</code> gem to talk to Postgres DB.</p>
 
-<p>My Gemfile now is:</p>
+<p>My Gemfile is now:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -230,17 +228,17 @@ we will not need them. We should also add a <code>pg</code> gem to talk to Postg
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>So for every person we store a <code>name</code>,
+<p>For every person we store a <code>name</code>,
 an <code>about</code> &ndash; this is where a person can tell the world about himself,
-<code>likes</code> &ndash; stuff person likes and <code>dislikes</code>.
-We also want to store a person&rsquo;s location, so that other people could find him in certain radius.</p>
+<code>likes</code> &ndash; things person likes and <code>dislikes</code>.
+We also want to store a person&rsquo;s location, so that other people can locate him within certain radius.</p>
 
 <p>We store a location using two <a href="http://www.postgresql.org/docs/9.3/static/datatype-numeric.html#DATATYPE-FLOAT">floating point</a> numbers, <code>lat</code> &ndash; for latitude, and <code>lon</code> &ndash; for longitude.
-It&rsquo;s quite possible to use a
+It&rsquo;s possible to use a
 specialized <a href="http://www.postgresql.org/docs/current/static/datatype-geometric.html#AEN6547">Point</a> data type, but I want to keep it simple here.</p>
 
 <p>I make <code>lat</code> &amp; <code>lon</code> attributes nullable in case a user
-denies the browser geolocation permission and his profile is saved without those values.</p>
+denies the browser geolocation permission.</p>
 
 <p>Let&rsquo;s create the databases and run the migration.</p>
 
@@ -384,14 +382,16 @@ denies the browser geolocation permission and his profile is saved without those
 </span><span class='line'><span class="x">&amp;lt;% end </span><span class="err">%&gt;</span><span class="x"></span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>This UI is a two part thing: if a user has already filled his details,
+<p>This UI has two parts: if a user has already filled his details,
 he can use the search form and search for people nearby.
 If this is a new user, he fills his details, optionally allows a browser to get his location and
-saves the profile in the database.</p>
+saves his profile in the database.</p>
 
-<p>We now need to modify the <code>app/assets/javascripts/application.js</code> and remove the files we&rsquo;re not using. In my case I remove them all and leave the <code>application.js</code> empty.</p>
+<p>We now need to modify the <code>app/assets/javascripts/application.js</code>
+and remove the files we&rsquo;re not using.
+I remove them all and leave the <code>application.js</code> empty.</p>
 
-<p>The view code checks the <code>current_user</code> method to see if current user profile has been filled.
+<p>The view code checks the <code>current_user</code> method to see if the current user profile has been filled.
 Let&rsquo;s create this method:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -430,10 +430,10 @@ Let&rsquo;s create this method:</p>
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>I&rsquo;ll be storing current user ID in session and get the information about
-the user from the database.</p>
+<p>I&rsquo;ll be storing current user&rsquo;s id in session and get the user object from the database.</p>
 
-<p>OK, let&rsquo;s concentrate on the <code>new user</code> scenario. In order for the application to know about user&rsquo;s location, we need to grab it from browser and save.</p>
+<p>Let&rsquo;s concentrate on the <code>new user</code> scenario.
+In order for the application to learn the user&rsquo;s location, we need to grab it from the browser and save.</p>
 
 <p>Adding the code to the view:</p>
 
@@ -538,7 +538,9 @@ the user from the database.</p>
 </span><span class='line'><span class="o">&lt;</span><span class="nx">p</span><span class="o">&gt;</span>  <span class="o">&lt;</span><span class="err">/script&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>When a view loads, JavaScripts asks a user for permission to get his location. If users agrees, the callback is called and the location is saved in hidden fields so that the form can
+<p>When a view loads, JavaScripts asks a user for permission to get his location.
+If the user agrees, the callback is invoked and the location is saved in the hidden fields
+so that the form can
 submit them back to the server.</p>
 
 <p>Now the controller part:</p>
@@ -605,12 +607,12 @@ submit them back to the server.</p>
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>Here we have a boilerplate ruby code, we&rsquo;re using strong parameterss to only allow a known
+<p>Here we have boilerplate ruby code, we&rsquo;re using strong parameters to only allow a known
 set of attributes.
 We then try to create a user and save the new user ID in the session.
-This way <code>current_user</code> helper method will be able to get the current user back from the
+This way <code>current_user</code> helper method will retrieve the current user from the
 database.
-If the validation fails, we just display the message and render the view again.</p>
+If the validation fails, we just display the message about it and render the view again.</p>
 
 <p>Let&rsquo;s add those validations:</p>
 
@@ -631,47 +633,55 @@ If the validation fails, we just display the message and render the view again.<
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>Now when we go back to the browser and reload the page we can enter the profile data,
-allow browser to get our geolocation and click save.</p>
+allow the browser to get our geolocation and click save.</p>
 
-<p>So far so good. At this point we introduced ourselves to
+<p>At this point we introduced ourselves to
 the system and <code>current_user.id</code> is stored in the encrypted cookie.</p>
 
 <p>Next part is where the fun starts: we need to be able to search for other users nearby.
-We should be able to limit the search radius, specify the search term and see the results.</p>
+We should allow limiting the search radius, specify the search term and see the results.</p>
 
-<p>What&rsquo;s important is that we should not see people who have our search term in <code>dislikes</code> attribute. For example if a person dislikes Chinese quisine, and we&rsquo;re searching for people
+<p>We must remove people who have our search term in their <code>dislikes</code> attribute.
+For example if a person dislikes Chinese couisine, and we&rsquo;re searching for people
 who like it,&hellip; you get the idea.</p>
 
-<p>Let&rsquo;s take a little detour and speak about the Solr and the gems that enable it on Rails.
+<p>Let&rsquo;s take a little detour and speak about Solr and the gems that enable it in Rails.
 We&rsquo;ll be using <a href="https://github.com/sunspot/sunspot">sunspot</a> &ndash; an excellent gem that
 adds a nice DSL (really, it&rsquo;s nice) on top of <a href="https://github.com/rsolr/rsolr">rsolr</a>.</p>
 
-<p>At this point you might be asking: <em>&ldquo;Wait! What&rsquo;s RSolr? I&rsquo;m now totally confused with Solr, RSolr and Sunspot and how they relate to each other&rdquo;</em>.
+<p>At this point you might be asking: <em>&ldquo;Wait! What&rsquo;s RSolr? I&rsquo;m now totally confused between Solr, RSolr and Sunspot and how they relate to each other&rdquo;</em>.
 I totally understand your confusion. Let&rsquo;s break this mess into pieces:</p>
 
 <ol>
-<li>Solr &ndash; a Java server that runs as a separate service and talks to the outside world
-via XML over HTTP API. It is generally considered a robust and full-featured, yet hard to learn
-full-text search solution. The only way you can communicate to Solr from Rails application
-directly is to send rather cryptic XML requests.</li>
-<li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around Solr HTTP API that allows interacting with Solr from Ruby code.</li>
+<li>Solr &ndash; a Java server that runs as a separate service and communicates
+via XML over HTTP API. It is generally considered a robust and full-featured
+— yet hard to learn full-text search solution.
+The only way you can communicate directly with Solr from a Rails application
+is to send rather cryptic XML requests.</li>
+<li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around the
+Solr HTTP API that allows interacting with Solr from Ruby.</li>
 <li>However RSolr is still rather low-level and does not provide any DSL or convenience methods
 to define which Rails models should be searchable and how the indexes will be updated.
 The need for a new library was apparent, so the Sunspot was born. A really nice DSL that
-integrates directly into ActiveRecord models and allows to specify which attributes we need
-to index, how to transform and query the data.</li>
+integrates directly into ActiveRecord models and allows specifying which attributes we need
+to index, as well as how to transform and query the data.</li>
 </ol>
 
 
-<p>Now you&rsquo;re saying: &ldquo;<em>I still don&rsquo;t understand, if the Solr is a Java service it means
-I need to install and configure it on my system? That&rsquo;s a horrible perspective, get me out of this!</em>&rdquo;. Absolutely not. Sunspot gem is bundled with a development version of Solr and has a nice set of rake tasks to manage it. You can start, stop, reindex the data, all using rake tasks. There is no need to install Solr manually, all you need is to add two gems:</p>
+<p>Now you&rsquo;re saying: &ldquo;<em>I still don&rsquo;t understand, if Solr is a Java service it means
+I need to install and configure it on my system?
+That&rsquo;s a horrible perspective, get me out of this!</em>&rdquo;.
+Absolutely not. The Sunspot gem is bundled with a development version of Solr and has a nice set of rake tasks to manage it. You can start, stop, reindex the data, all using rake tasks. There is no need to install Solr manually, all you need is to add two gems:</p>
 
 <p><code>sunspot_solr</code> and <code>sunspot_rails</code>.</p>
 
 <p><code>sunspot_solr</code> is the pre-packaged development version of Solr and <code>sunspot_rails</code>
 is the Sunspot gem itself. So you need to make sure you place the <code>sunspot_solr</code> into <code>:development</code> group in your Gemfile.</p>
 
-<p>OK, now that confusion is hopefully out of the way, let&rsquo;s continue with our people search
+<p>Now you can start bundled Solr with <code>rake sunspot:solr:start</code>, stop it with <code>rake sunspot:solr:stop</code> and
+reindex all data with <code>rake sunspot:reindex</code>.</p>
+
+<p>OK, now that confusion is hopefully out of the way, let&rsquo;s continue with our person search
 scenario.</p>
 
 <p>Let us define the searchable attributes on our <code>Person</code> model:</p>
@@ -708,12 +718,15 @@ scenario.</p>
 <li><code>searchable</code> block is a place where you define the full-text indexing behavior.
 Inside this block you can specify various rules describing which attributes should
 be indexed, their pre-index transformations, facets, filters and so on.</li>
-<li><code>text :name</code> &ndash; person should be searchable by its name. By searchable I mean full-text searchable.</li>
-<li><code>boost: 5.0</code> &ndash; boost option tells Solr to prioritize the results found by this particular attribute. If you&rsquo;re searching for <code>John Doe</code>, all the people with such name will come first, and only after them those, who dislike Johns Doe (or John Does, I don&rsquo;t know which is correct).</li>
-<li><code>text :about, :likes</code> &ndash; person should be searchable by these attributes.</li>
+<li><code>text :name</code> &ndash; A person should be searchable by his name.</li>
+<li><code>boost: 5.0</code> &ndash; boost option tells Solr to prioritize the results found by this particular attribute.
+If you&rsquo;re searching for <code>John Doe</code>,
+all the people with this name will come first,
+and only after those who dislike John Does.</li>
+<li><code>text :about, :likes</code> &ndash; <code>Person</code> should be searchable by these attributes.</li>
 <li><code>latlon(:location) { Sunspot::Util::Coordinates.new(lat, lon) }</code> &ndash; create a geo-spatial
-index on person&rsquo;s location using <code>lat</code> and <code>lon</code> attributes. This will allow to search for
-people within a certain mile radius.</li>
+index on person&rsquo;s location using <code>lat</code> and <code>lon</code> attributes.
+This will allow searching for people within a certain mile radius.</li>
 </ol>
 
 
@@ -832,22 +845,22 @@ Now we&rsquo;re ready to actually search for people.</p>
 search by, either a search term or a radius. Then on lines <code>5 - 10</code> is where the actual
 full-text search happens. We use a <code>Model.search</code> method and pass it a block.
 Inside this block we need to specify the logic of the search.
-In our case we call <code>fulltext</code> method and pass it our search term.</p>
+In our case we call the <code>fulltext</code> method and pass it our search term.</p>
 
 <p>Let me be clear, we have two phases: <strong>indexing</strong> and <strong>searching</strong>. Indexing is defined
 inside a model in a <code>searchable</code> block. You use <code>text</code> method to specify which attributes
 should be full-text searchable.</p>
 
-<p>Searching is done by calling <code>Model.search</code> method and passing it a block too. But this time
+<p>Search by calling <code>Model.search</code> method and passing it a block too. But this time
 we call <code>fulltext</code> method to actually do full-text search on indexed attributes.</p>
 
-<p>OK, we know know how to do full-text search on text attributes, we&rsquo;re already doing it on
+<p>OK, we now understand how to do full-text search on text attributes, we&rsquo;re already doing it on
 <code>name</code>, <code>about</code> and <code>likes</code> attributes. What we also need is a way to restrict the results
 to a certain radius on a map. This is what lines <code>7 - 9</code> are for.</p>
 
-<p>In out application it&rsquo;s possible that user denies a geolocation permission and his
-profile is saved without coordinates. So we need a convenience method to see
-if current user has a location or not:</p>
+<p>In our application it&rsquo;s possible for a user to deny geolocation permissions and his
+profile to be saved without coordinates. So, we need a convenience method to see
+if the current user has a location:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -883,8 +896,8 @@ if current user has a location or not:</p>
 </span><span class='line'><span class="sr">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>We&rsquo;re using current user&rsquo;s <code>lat</code> &amp; <code>lon</code> attributes and the radius from params to perform the
-filtering. You should remember to convert miles to kilimeters, because Sunspot operates on
+<p>We&rsquo;re using the current user&rsquo;s <code>lat</code> &amp; <code>lon</code> attributes and the radius from params to perform the
+filtering. You should remember to convert miles to kilometers, because Sunspot operates on
 kilometers.</p>
 
 <p>OK, first version of the people search is ready to try, let&rsquo;s run it.</p>
@@ -998,14 +1011,14 @@ current user&rsquo;s profile and then go search for other people.</p>
 <p>In this article I&rsquo;ve barely scratched the surface of the Solr &amp; Sunspot capabilities. You should definitely look for more in the documentation if you want to create a full-featured
 application.</p>
 
-<h3>By why should I use fulltext search if I can do everything in SQL?</h3>
+<h3>But why should I use fulltext search if I can do everything in SQL?</h3>
 
 <p>You&rsquo;re right, except you can&rsquo;t.
 Full text search is a huge topic with a huge set of capabilities.
-It can do synonyms search, wildcard search, stemming
+It can do synonym search, wildcard search, stemming
 and a <a href="https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters">lot, lot more</a>.</p>
 
-<p>Solr can be as intelligent as to perform a word decomposition during search, operate on
+<p>Solr can be as intelligent as to perform word decomposition during a search, operate on
 word parts and generally behave as a human (almost).</p>
 
 <p>Full-text search is faster too. How much faster? This is a tricky question, because it all
