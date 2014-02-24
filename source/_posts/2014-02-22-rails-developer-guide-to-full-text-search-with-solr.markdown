@@ -6,24 +6,22 @@ comments: true
 categories: [ruby, rails, full-text, solr, sunspot]
 ---
 
-Every developer heard about full-text search. 
+Every developer has heard of full-text search. However, most developers search with SQL and relational databases.
 
-Most developers search with SQL and relational databases. 
+Almost every developer knows deep inside that full-text search is better suited for searching text, but continues to use old `LIKE '%?%'` queries.
 
-Almost every developer knows somewhere deep that full-text search is better suited for searching text, but keeps using old `LIKE '%?%'` queries.
-
-I've been one of those developers who never looked at full-text search, 
-but I have changed and I invite other people to join me in this change 
-and discover the other side of search with Solr.
+I was one of those developers who never used full-text search, 
+but I have changed and I invite others to join me and discover 
+the other side of search with Solr.
 
 <!--more--> 
 
 This article assumes you're comfortable with Ruby, Rails and PostgreSQL. I'll build a simple _people near me_ application using Solr in small incremental steps and hopefully help readers to 
 overcome the feeling of uncomfortable uneasiness when thinking about full text search technology. 
 
-**A word of disclaimer:** _my goal here is to familiarize a reader with full-text searching, 
+**Disclaimer:** _My goal here is to familiarize the reader with full-text search, 
 not create an ideal rails application structure.
-I'll be using long views, JavaScript inside ERB templates and what not. 
+I'll be using long views and JavaScript inside ERB templates.
 The point is to make a small but complete application in a single article
 and it is possible to do so only by keeping it really simple._
 
@@ -47,10 +45,10 @@ Rails 4.0.2
       ...
 {% endcodeblock %}
 
-Let's remove the `sqlite3`, `turbolinks`, `coffee-rails`, `jbuilder` and `jquery-rails` gems, 
-we will not need them. We should also add a `pg` gem to talk to Postgres DB.
+Let's remove the `sqlite3`, `turbolinks`, `coffee-rails`, `jbuilder` and `jquery-rails` gems
+as we will not need them. We should also add the `pg` gem to talk to Postgres DB.
 
-My Gemfile now is: 
+My Gemfile is now: 
 
 {% codeblock %}
 source 'https://rubygems.org'
@@ -120,17 +118,17 @@ class CreatePeople < ActiveRecord::Migration
 end
 {% endcodeblock %}
 
-So for every person we store a `name`, 
+For every person we store a `name`, 
 an `about` - this is where a person can tell the world about himself,
-`likes` - stuff person likes and `dislikes`. 
-We also want to store a person's location, so that other people could find him in certain radius.
+`likes` - things person likes and `dislikes`. 
+We also want to store a person's location, so that other people can locate him within certain radius.
 
 We store a location using two [floating point](http://www.postgresql.org/docs/9.3/static/datatype-numeric.html#DATATYPE-FLOAT) numbers, `lat` - for latitude, and `lon` - for longitude. 
-It's quite possible to use a
+It's possible to use a
 specialized [Point](http://www.postgresql.org/docs/current/static/datatype-geometric.html#AEN6547) data type, but I want to keep it simple here.
 
 I make `lat` & `lon` attributes nullable in case a user
-denies the browser geolocation permission and his profile is saved without those values.
+denies the browser geolocation permission.
 
 Let's create the databases and run the migration.
 
@@ -198,14 +196,16 @@ end
 <% end %>
 {% endcodeblock %}
 
-This UI is a two part thing: if a user has already filled his details, 
+This UI has two parts: if a user has already filled his details, 
 he can use the search form and search for people nearby. 
 If this is a new user, he fills his details, optionally allows a browser to get his location and 
-saves the profile in the database.
+saves his profile in the database.
 
-We now need to modify the `app/assets/javascripts/application.js` and remove the files we're not using. In my case I remove them all and leave the `application.js` empty.
+We now need to modify the `app/assets/javascripts/application.js` 
+and remove the files we're not using. 
+I remove them all and leave the `application.js` empty.
 
-The view code checks the `current_user` method to see if current user profile has been filled. 
+The view code checks the `current_user` method to see if the current user profile has been filled. 
 Let's create this method:
 
 {% codeblock lang:ruby %}
@@ -222,10 +222,10 @@ class ApplicationController < ActionController::Base
 end
 {% endcodeblock%}
 
-I'll be storing current user ID in session and get the information about 
-the user from the database. 
+I'll be storing current user's id in session and get the user object from the database. 
 
-OK, let's concentrate on the `new user` scenario. In order for the application to know about user's location, we need to grab it from browser and save. 
+Let's concentrate on the `new user` scenario. 
+In order for the application to learn the user's location, we need to grab it from the browser and save. 
 
 Adding the code to the view:
 
@@ -270,7 +270,9 @@ And the JavaScript:
   </script>
 {% endcodeblock %}
 
-When a view loads, JavaScripts asks a user for permission to get his location. If users agrees, the callback is called and the location is saved in hidden fields so that the form can
+When a view loads, JavaScripts asks a user for permission to get his location. 
+If the user agrees, the callback is invoked and the location is saved in the hidden fields 
+so that the form can
 submit them back to the server.
 
 Now the controller part: 
@@ -299,12 +301,12 @@ def person_params
 end
 {% endcodeblock %}
 
-Here we have a boilerplate ruby code, we're using strong parameterss to only allow a known
+Here we have boilerplate ruby code, we're using strong parameters to only allow a known
 set of attributes. 
 We then try to create a user and save the new user ID in the session.
-This way `current_user` helper method will be able to get the current user back from the 
+This way `current_user` helper method will retrieve the current user from the 
 database. 
-If the validation fails, we just display the message and render the view again.
+If the validation fails, we just display the message about it and render the view again.
 
 Let's add those validations:
 
@@ -316,44 +318,52 @@ end
 {% endcodeblock %}
 
 Now when we go back to the browser and reload the page we can enter the profile data,
-allow browser to get our geolocation and click save. 
+allow the browser to get our geolocation and click save. 
 
-So far so good. At this point we introduced ourselves to 
+At this point we introduced ourselves to 
 the system and `current_user.id` is stored in the encrypted cookie. 
 
 Next part is where the fun starts: we need to be able to search for other users nearby.
-We should be able to limit the search radius, specify the search term and see the results.
+We should allow limiting the search radius, specify the search term and see the results.
 
-What's important is that we should not see people who have our search term in `dislikes` attribute. For example if a person dislikes Chinese quisine, and we're searching for people
+We must remove people who have our search term in their `dislikes` attribute. 
+For example if a person dislikes Chinese couisine, and we're searching for people
 who like it,... you get the idea.
 
-Let's take a little detour and speak about the Solr and the gems that enable it on Rails.
+Let's take a little detour and speak about Solr and the gems that enable it in Rails.
 We'll be using [sunspot](https://github.com/sunspot/sunspot) - an excellent gem that
 adds a nice DSL (really, it's nice) on top of [rsolr](https://github.com/rsolr/rsolr). 
 
-At this point you might be asking: _"Wait! What's RSolr? I'm now totally confused with Solr, RSolr and Sunspot and how they relate to each other"_. 
+At this point you might be asking: _"Wait! What's RSolr? I'm now totally confused between Solr, RSolr and Sunspot and how they relate to each other"_. 
 I totally understand your confusion. Let's break this mess into pieces:
 
-1. Solr - a Java server that runs as a separate service and talks to the outside world 
-via XML over HTTP API. It is generally considered a robust and full-featured, yet hard to learn
-full-text search solution. The only way you can communicate to Solr from Rails application
-directly is to send rather cryptic XML requests. 
-2. Nobody wants to mess with raw XML over HTTP, so here enters RSolr - a wrapper around Solr HTTP API that allows interacting with Solr from Ruby code.
+1. Solr - a Java server that runs as a separate service and communicates
+via XML over HTTP API. It is generally considered a robust and full-featured 
+— yet hard to learn full-text search solution. 
+The only way you can communicate directly with Solr from a Rails application
+is to send rather cryptic XML requests. 
+2. Nobody wants to mess with raw XML over HTTP, so here enters RSolr - a wrapper around the
+Solr HTTP API that allows interacting with Solr from Ruby.
 3. However RSolr is still rather low-level and does not provide any DSL or convenience methods
 to define which Rails models should be searchable and how the indexes will be updated. 
 The need for a new library was apparent, so the Sunspot was born. A really nice DSL that 
-integrates directly into ActiveRecord models and allows to specify which attributes we need 
-to index, how to transform and query the data. 
+integrates directly into ActiveRecord models and allows specifying which attributes we need 
+to index, as well as how to transform and query the data. 
 
-Now you're saying: "_I still don't understand, if the Solr is a Java service it means
-I need to install and configure it on my system? That's a horrible perspective, get me out of this!_". Absolutely not. Sunspot gem is bundled with a development version of Solr and has a nice set of rake tasks to manage it. You can start, stop, reindex the data, all using rake tasks. There is no need to install Solr manually, all you need is to add two gems:
+Now you're saying: "_I still don't understand, if Solr is a Java service it means
+I need to install and configure it on my system? 
+That's a horrible perspective, get me out of this!_". 
+Absolutely not. The Sunspot gem is bundled with a development version of Solr and has a nice set of rake tasks to manage it. You can start, stop, reindex the data, all using rake tasks. There is no need to install Solr manually, all you need is to add two gems:
 
 `sunspot_solr` and `sunspot_rails`. 
 
 `sunspot_solr` is the pre-packaged development version of Solr and `sunspot_rails` 
 is the Sunspot gem itself. So you need to make sure you place the `sunspot_solr` into `:development` group in your Gemfile.
 
-OK, now that confusion is hopefully out of the way, let's continue with our people search 
+Now you can start bundled Solr with `rake sunspot:solr:start`, stop it with `rake sunspot:solr:stop` and 
+reindex all data with `rake sunspot:reindex`.
+
+OK, now that confusion is hopefully out of the way, let's continue with our person search 
 scenario.
 
 Let us define the searchable attributes on our `Person` model:
@@ -375,12 +385,15 @@ Let's break it down piece by piece:
 1. `searchable` block is a place where you define the full-text indexing behavior. 
 Inside this block you can specify various rules describing which attributes should
 be indexed, their pre-index transformations, facets, filters and so on.
-2. `text :name` - person should be searchable by its name. By searchable I mean full-text searchable.
-3. `boost: 5.0` - boost option tells Solr to prioritize the results found by this particular attribute. If you're searching for `John Doe`, all the people with such name will come first, and only after them those, who dislike Johns Doe (or John Does, I don't know which is correct).
-4. `text :about, :likes` - person should be searchable by these attributes. 
+2. `text :name` - A person should be searchable by his name. 
+3. `boost: 5.0` - boost option tells Solr to prioritize the results found by this particular attribute. 
+If you're searching for `John Doe`, 
+all the people with this name will come first, 
+and only after those who dislike John Does.
+4. `text :about, :likes` - `Person` should be searchable by these attributes. 
 5. `latlon(:location) { Sunspot::Util::Coordinates.new(lat, lon) }` - create a geo-spatial 
-index on person's location using `lat` and `lon` attributes. This will allow to search for 
-people within a certain mile radius.
+index on person's location using `lat` and `lon` attributes. 
+This will allow searching for people within a certain mile radius.
 
 
 Great, wasn't that simple? We've defined a set of searchable attributes on a `Person` model.
@@ -438,22 +451,22 @@ On line `3` we check if current user is saved, on line `4` we verify we have som
 search by, either a search term or a radius. Then on lines `5 - 10` is where the actual 
 full-text search happens. We use a `Model.search` method and pass it a block. 
 Inside this block we need to specify the logic of the search.
-In our case we call `fulltext` method and pass it our search term.
+In our case we call the `fulltext` method and pass it our search term.
 
 Let me be clear, we have two phases: **indexing** and **searching**. Indexing is defined
 inside a model in a `searchable` block. You use `text` method to specify which attributes
 should be full-text searchable.
 
-Searching is done by calling `Model.search` method and passing it a block too. But this time
+Search by calling `Model.search` method and passing it a block too. But this time
 we call `fulltext` method to actually do full-text search on indexed attributes.
 
-OK, we know know how to do full-text search on text attributes, we're already doing it on 
+OK, we now understand how to do full-text search on text attributes, we're already doing it on 
 `name`, `about` and `likes` attributes. What we also need is a way to restrict the results
 to a certain radius on a map. This is what lines `7 - 9` are for.
 
-In out application it's possible that user denies a geolocation permission and his 
-profile is saved without coordinates. So we need a convenience method to see
-if current user has a location or not:
+In our application it's possible for a user to deny geolocation permissions and his 
+profile to be saved without coordinates. So, we need a convenience method to see
+if the current user has a location:
 
 {% codeblock lang:ruby %}
 # app/models/person.rb
@@ -471,8 +484,8 @@ if current_user.has_location?
 end
 {% endcodeblock %}
 
-We're using current user's `lat` & `lon` attributes and the radius from params to perform the 
-filtering. You should remember to convert miles to kilimeters, because Sunspot operates on
+We're using the current user's `lat` & `lon` attributes and the radius from params to perform the 
+filtering. You should remember to convert miles to kilometers, because Sunspot operates on
 kilometers.
 
 OK, first version of the people search is ready to try, let's run it.
@@ -536,14 +549,14 @@ current user's profile and then go search for other people.
 In this article I've barely scratched the surface of the Solr & Sunspot capabilities. You should definitely look for more in the documentation if you want to create a full-featured
 application.
 
-### By why should I use fulltext search if I can do everything in SQL?
+### But why should I use fulltext search if I can do everything in SQL?
 
 You're right, except you can't. 
 Full text search is a huge topic with a huge set of capabilities. 
-It can do synonyms search, wildcard search, stemming
+It can do synonym search, wildcard search, stemming
 and a [lot, lot more](https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters).
 
-Solr can be as intelligent as to perform a word decomposition during search, operate on
+Solr can be as intelligent as to perform word decomposition during a search, operate on
 word parts and generally behave as a human (almost).
 
 Full-text search is faster too. How much faster? This is a tricky question, because it all
