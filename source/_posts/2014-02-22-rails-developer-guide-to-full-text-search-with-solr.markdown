@@ -30,12 +30,12 @@ OK, enough talk, let's build the app!
 Let's call this app `Neibo`: 
 
 {%codeblock %}
-➜  personal  ruby -v
+personal  ruby -v
 ruby 2.0.0p353 (2013-11-22 revision 43784) [x86_64-darwin13.0.0]
-➜  personal  rails -v
+personal  rails -v
 Rails 4.0.2
-➜  personal  rails new neibo
-      create  
+personal  rails new neibo
+      create
       create  README.rdoc
       create  Rakefile
       create  config.ru
@@ -48,7 +48,7 @@ Rails 4.0.2
 Let's remove the `sqlite3`, `turbolinks`, `coffee-rails`, `jbuilder` and `jquery-rails` gems
 as we will not need them. We should also add the `pg` gem to talk to Postgres DB.
 
-My Gemfile is now: 
+My Gemfile is now:
 
 {% codeblock %}
 source 'https://rubygems.org'
@@ -95,13 +95,13 @@ end
 {% endcodeblock %}
 
 {%codeblock %}
-➜  neibo  rails g migration create_people
-      invoke  active_record
-      create    db/migrate/20140222113048_create_people.rb
+neibo  rails g migration create_people
+    invoke  active_record
+    create    db/migrate/20140222113048_create_people.rb
 {% endcodeblock %}
 
 {%codeblock lang:ruby %}
-# db/migrate/20140222113048_create_people.rb 
+# db/migrate/20140222113048_create_people.rb
 class CreatePeople < ActiveRecord::Migration
   def change
     create_table :people do |t|
@@ -133,8 +133,8 @@ denies the browser geolocation permission.
 Let's create the databases and run the migration.
 
 {%codeblock%}
-➜  neibo  rake db:create
-➜  neibo  rake db:migrate
+ neibo  rake db:create
+ neibo  rake db:migrate
 ==  CreatePeople: migrating ===================================================
 -- create_table(:people)
    -> 0.0080s
@@ -171,7 +171,7 @@ end
   <h3>Search people near you: </h3>
   <%= form_tag people_path, method: :get do %>
     <div>
-      <%= text_field_tag :search, params[:search], 
+      <%= text_field_tag :search, params[:search],
       placeholder: 'Search nearby people', type: :search, style: 'width: 400px' %>
       <label>Search within mile radius:
         <%= select_tag :radius, options_for_select([10, 50, 100]) %>
@@ -182,7 +182,7 @@ end
 <% else %>
   <h2>Hello, guest</h2>
   <h3>
-    Fill your profile so that people could find you. 
+    Fill your profile so that people could find you.
     Allow browser to access your location if you want to be found by people near you.
   </h3>
 
@@ -232,7 +232,7 @@ Adding the code to the view:
 {% codeblock lang:html %}
   <h2>Hello, guest</h2>
   <h3>
-    Fill your profile so that people could find you. 
+    Fill your profile so that people could find you.
     Allow browser to access your location if you want to be found by people near you.
   </h3>
 
@@ -246,7 +246,7 @@ Adding the code to the view:
     <div> <%= f.submit 'Save' %> </div>
   <% end %>
   <script>
-    navigator.geolocation.getCurrentPosition(function(position) {   
+    navigator.geolocation.getCurrentPosition(function(position) {
       document.querySelector('#person_lat').value = position.coords.latitude;
       document.querySelector('#person_lon').value = position.coords.longitude;
     });
@@ -263,19 +263,19 @@ The lines we're interested in are:
 And the JavaScript:
 {% codeblock lang:javascript %}
   <script>
-    navigator.geolocation.getCurrentPosition(function(position) {   
+    navigator.geolocation.getCurrentPosition(function(position) {
       document.querySelector('#person_lat').value = position.coords.latitude;
       document.querySelector('#person_lon').value = position.coords.longitude;
     });
   </script>
 {% endcodeblock %}
 
-When a view loads, JavaScripts asks a user for permission to get his location. 
-If the user agrees, the callback is invoked and the location is saved in the hidden fields 
+When a view loads, JavaScripts asks a user for permission to get his location.
+If the user agrees, the callback is invoked and the location is saved in the hidden fields
 so that the form can
 submit them back to the server.
 
-Now the controller part: 
+Now the controller part:
 
 {% codeblock lang:ruby %}
 # app/controllers/people_controller.rb
@@ -339,7 +339,7 @@ I totally understand your confusion. Let's break this mess into pieces:
 
 1. Solr - a Java server that runs as a separate service and communicates
 via XML over HTTP API. It is generally considered a robust and full-featured 
-— yet hard to learn full-text search solution. 
+- yet hard to learn full-text search solution. 
 The only way you can communicate directly with Solr from a Rails application
 is to send rather cryptic XML requests. 
 2. Nobody wants to mess with raw XML over HTTP, so here enters RSolr - a wrapper around the
@@ -372,7 +372,7 @@ Let us define the searchable attributes on our `Person` model:
 class Person < ActiveRecord::Base
   validates :name, :about, :likes, :dislikes, presence: true
 
-  searchable do 
+  searchable do
     text :name, boost: 5.0
     text :about, :likes
     latlon(:location) { Sunspot::Util::Coordinates.new(lat, lon) }
@@ -431,9 +431,9 @@ So the view is ready, let's modify the controller code:
 def index
   if current_user
     if params[:search].present? || params[:radius].present?
-      search = Person.search do 
+      search = Person.search do
         fulltext params[:search]
-        if current_user.has_location? 
+        if current_user.has_location?
           with(:location).in_radius(current_user.lat, current_user.lon, params[:radius])
         end
       end
@@ -479,7 +479,7 @@ This method is useful in `Person.search` block where we specify the search radiu
 
 {% codeblock lang:ruby %}
 # app/controllers/people_controller.rb
-if current_user.has_location? 
+if current_user.has_location?
   with(:location).in_radius(current_user.lat, current_user.lon, params[:radius])
 end
 {% endcodeblock %}
@@ -500,7 +500,7 @@ with `:id` equal to the `:id` of current user. We also need to filter out the pe
 
 {% codeblock lang:ruby %}
 # app/models/person.rb
-searchable do 
+searchable do
   text :name, boost: 5.0
   text :about, :likes
   integer (:id)
@@ -519,11 +519,11 @@ Now the filtering itself:
 def index
   if current_user
     if params[:search].present? || params[:radius].present?
-      search = Person.search do 
+      search = Person.search do
         without(:id, current_user.id)
         without(:dislikes, params[:search]) if params[:search].present?
         fulltext params[:search]
-        if current_user.has_location? 
+        if current_user.has_location?
           with(:location).in_radius(current_user.lat, current_user.lon, params[:radius])
         end
       end
@@ -551,8 +551,8 @@ application.
 
 ### But why should I use fulltext search if I can do everything in SQL?
 
-You're right, except you can't. 
-Full text search is a huge topic with a huge set of capabilities. 
+You're right, except you can't.
+Full text search is a huge topic with a huge set of capabilities.
 It can do synonym search, wildcard search, stemming
 and a [lot, lot more](https://wiki.apache.org/solr/AnalyzersTokenizersTokenFilters).
 
@@ -560,7 +560,7 @@ Solr can be as intelligent as to perform word decomposition during a search, ope
 word parts and generally behave as a human (almost).
 
 Full-text search is faster too. How much faster? This is a tricky question, because it all
-depends on the indexed data, but one can safely assume it can be at least several times 
+depends on the indexed data, but one can safely assume it can be at least several times
 faster than equivalent SQL searching. For complex searches Solr can be orders of magnitude
 faster than SQL.
 
@@ -581,9 +581,9 @@ Redirected to http://localhost:3000/people
 You should generally avoid touching Solr in unit tests. Either design your tests to avoid
 talking to Solr in unit tests, or just stub Solr to return pre-canned results.
 
-As for integration tests, indexing data before running them worked best for me. 
-I first prepare some test data, then I reindex it with: 
-`rake sunspot:reindex` 
+As for integration tests, indexing data before running them worked best for me.
+I first prepare some test data, then I reindex it with:
+`rake sunspot:reindex`
 and then run the integration tests.
 
 If you find the topic of testing interesting, drop me a line, I'll cover it in the next article.

@@ -84,7 +84,7 @@ new Date().getTimezoneOffset();
 {% endcodeblock %}
 
 So I now knew all my browser had, and I needed to produce the fingerprint itself.
-For that I wanted to use a fast, non-cryptographic hashing function, such as [murmur hashing](http://en.wikipedia.org/wiki/MurmurHash‎).
+For that I wanted to use a fast, non-cryptographic hashing function, such as [murmur hashing](http://en.wikipedia.org/wiki/MurmurHash).
 
 Murmur hashing produces 32-bit integer as a result and works really well. [When compared to other popular hash functions, MurmurHash performed well in a random distribution of regular keys.](http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed)
 
