@@ -40,7 +40,10 @@ Let me start by saying that this article assumes you're interested in
 functional programming. It also assumes that you've probably seen
 other examples of functional code before.
 
-Example 1: Immutability
+I'm going to split this article into several parts and each part will
+explain a specific example.
+
+## Part 1: Immutability
 
 What is immutability? When people speak about immutability they usually
 mean [immutable objects](http://en.wikipedia.org/wiki/Immutable_object).
@@ -55,5 +58,14 @@ First let's define what 'whose state cannot be modified' really means.
 At first you may think that such object is useless, how we can possibly
 use an object if we cannot change it?
 
+### Immutable primitive objects
 
+### Strings
 
+### Immutable data structures
+
+#### Immutable collections
+
+### Immutability and multithreading
+
+### Conclusion
