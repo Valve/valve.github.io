@@ -12,8 +12,8 @@ programming for a long while. I remember myself reading articles
 promising programming heaven for those who are brave enough to go
 functional. I bought a used [Real World Haskell](http://book.realworldhaskell.org/)
 on Ebay, but sadly never finished it.
-I then bought 'Scala for the Impatient', but this time had the
-persistence to finish the book.
+I then bought [Scala for the Impatient](http://www.amazon.com/Scala-Impatient-Cay-S-Horstmann/dp/0321774094),
+but this time had the persistence to finish the book.
 
 All these years functional programming seemed like a holy grail for me,
 but as a true holy grail, I was afraid it was meant to stay
@@ -52,11 +52,43 @@ Quoting from wikipedia:
 >> an immutable object is an object whose state cannot be modified after it is created.
 This is in contrast to a mutable object, which can be modified after it is created.
 
-Very simple concept with very far going consequences.
+Very simple concept with far going consequences.
 
 First let's define what 'whose state cannot be modified' really means.
-At first you may think that such object is useless, how we can possibly
+At first you may think that such object is useless, how can we possibly
 use an object if we cannot change it?
+Usually what happens is that an immutable object creates a copy of
+itself with desired modifications. The original object always stays
+unchanged. You will see the examples of it further in the article.
+
+### Immutability and functional programming
+
+Now another foundational question: why does functional programming favor
+immutable values and data structures over mutable? Is _real_ functional
+programming possible with mutable values?
+You probably know that functional programming is more than 'programming
+with functions'. It also requires the functions to be _pure_.
+I'm not a mathematician and probably my explanation of pure functions will
+not be scientifically correct. But you can think of them simply as functions that
+always accept an argument, always return the result and
+the computing of the result depends solely on the argument.
+In other words, a pure function cannot depend on some other data, called
+_state_, existing elsewhere, to influence how the result is computed.
+The only thing that dictates how the result is computed is the
+function argument. Pure functions cannot change the external state
+either.
+
+Sometimes programmers call the external state as 'the world' and refer
+to pure functions as functions that cannot depend on 'the world' or
+'read the world state', nor change the world while making its job.
+
+Example if an impure function:
+
+{% codeblock lang:ruby %}
+def calculate_ruble_rate()
+end
+{% endcodeblock %}
+
 
 ### Immutable primitive objects
 
@@ -67,5 +99,7 @@ use an object if we cannot change it?
 #### Immutable collections
 
 ### Immutability and multithreading
+
+### Immutability and copy on write
 
 ### Conclusion
