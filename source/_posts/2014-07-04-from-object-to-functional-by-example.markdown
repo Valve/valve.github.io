@@ -69,26 +69,122 @@ programming possible with mutable values?
 You probably know that functional programming is more than 'programming
 with functions'. It also requires the functions to be _pure_.
 I'm not a mathematician and probably my explanation of pure functions will
-not be scientifically correct. But you can think of them simply as functions that
+not be scientifically correct, but you can think of them simply as functions that
 always accept an argument, always return the result and
 the computing of the result depends solely on the argument.
 In other words, a pure function cannot depend on some other data, called
 _state_, existing elsewhere, to influence how the result is computed.
 The only thing that dictates how the result is computed is the
 function argument. Pure functions cannot change the external state
-either.
+either, which is called _creating side effects_.
 
 Sometimes programmers call the external state as 'the world' and refer
 to pure functions as functions that cannot depend on 'the world' or
 'read the world state', nor change the world while making its job.
 
-Example if an impure function:
+Why bother at all about the purity of functions? The reason for this is
+composability. When all your functions are pure, you can compose large
+programs from small functions. Knowing that a function is pure is knowing
+that it operates only inside itself, thus providing guarantees
+that it will not change the external state, i.e. will not make side effects.
+
+Is it possible to write a real program using only pure functions?
+How can you talk to the database, write to files, charge
+credit cards and do all other stuff the real programs do? Functional
+applications are usually built using a pure core, where the bulk of
+the logic lives and a thin, impure shell, that provides access to the
+pure core from the outside world. This way you have a large part
+of the code that is easy to reason about, easy to test and understand.
+
+Example of a pure function:
 
 {% codeblock lang:ruby %}
-def calculate_ruble_rate()
+def sum_two_numbers(a,b)
+  a + b
 end
 {% endcodeblock %}
 
+You can see that this function computes the result only using its
+arguments.
+
+Example of an impure function:
+
+{% codeblock lang:ruby %}
+def sum_two_numbers(a,b)
+  logger.info("calculating sum of two numbers")
+  a + b
+end
+{% endcodeblock %}
+
+This function writes to the file system besides computing the result.
+In other words, this function changes the world by creating side
+effects.
+
+Using v2 of this function you hurt composability; you limit yourself in
+the ways you can use this function further in your program.
+
+#### Purity and immutability
+
+Now let's look why function purity demands immutability on a concrete
+example. We all know that strings in ruby are [mutable](http://stackoverflow.com/q/2608493/430254).
+You can mutate the string with:
+
+{% codeblock lang:ruby %}
+s = "Hello"
+# mutating with '<<'
+s << ", world"
+# mutating with bang methods
+s.upcase!
+puts s
+# => "HELLO, WORLD"
+{% endcodeblock %}
+
+This code fragment modifies the string in-place, mutating it.
+Now let's use the string as a function argument:
+
+{% codeblock lang:ruby %}
+def upcase_string(input)
+  input.upcase!
+  input
+end
+{% endcodeblock %}
+
+This method mutates the argument and returns it.
+On the surface, this looks OK, but we have just inadvertently created a
+side effect. Any external code that relied on this string will
+possibly break.
+
+Let's create an example of this:
+{% codeblock lang:ruby %}
+
+def upcase_string(input)
+  input.upcase!
+  input
+end
+current_user_name = get_current_user.name
+upcased_user_name = upcase_string(current_user_name)
+# ...
+# ...
+# somewhere else still thinking that current_user_name is downcased
+if current_user_name == 'admin' 
+  # this will never be true
+  # ...
+end
+{% endcodeblock %}
+
+You see now that in order to keep function pure we should never mutate
+its arguments, but create new objects and return them instead.
+Same function, but this time pure:
+
+{% codeblock lang:ruby %}
+def upcase_string(input)
+  input.upcase
+end
+{% endcodeblock %}
+
+Just a minor modification gives us a lot of benefits:
+we're no longer modifying the world and only returning a new string with
+the required modifications.
 
 ### Immutable primitive objects
 
