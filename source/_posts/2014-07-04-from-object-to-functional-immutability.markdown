@@ -231,9 +231,55 @@ is needed is slow.
 However, Ruby does not have true [primitives](http://en.wikipedia.org/wiki/Primitive_data_type),
 because [in Ruby, everything is an object](https://www.ruby-lang.org/en/about/).
 You can call methods and properties on numbers and extend them with
-user-defined methods.
+user-defined methods. I will still call them primitives, because it's
+what they are at least on a conceptual level.
+
+On one hand, primitives behave like immutable objects
+in Ruby:
+
+{% codeblock lang:ruby%}
+i = 99
+puts i.object_id
+# => 7
+i += 1
+puts i.object_id
+# => 12
+{% endcodeblock %}
+
+This snippet demonstrates that you cannot modify a number. In real life
+this doesn't make sense either, if you have number 4 it's number 4,
+eternal and beautiful. If you add 1 to it, you get completely different
+number 5, the old 4 stays the same.
+
+On the other hand, you can define your own methods and properties:
+
+{% codeblock lang:ruby%}
+class TrueClass
+  attr_accessor :name
+end
+true.name = "one"
+false.name = "two"
+{% endcodeblock %}
+
+Integers and floats are frozen by default, while booleans are not.
+
+{% codeblock lang:ruby%}
+1.frozen? # true
+3.14.frozen? # true
+true.frozen? # false
+{% endcodeblock %}
+
+So while some primitives are not frozen, ruby does not provide mutation
+methods for them and they _usually_ can be treated as immutable objects.
+You should remember that this easily overriden (as everything in Ruby)
+and can cause potential problems.
 
 ### Strings
+
+Before diving into the specific implementation of Ruby strings, let's
+talk about string immutability in general. In most languages strings are
+immutable, for example string concatenation or upcasing produces a new
+string rather than modifying in-place.
 
 ### Immutable data structures
 
