@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "from object to functional by example"
+title: "from object to functional — immutability"
 date: 2014-07-04 15:30
 comments: true
 categories: [functional, object, programming, language, ruby, rust,
@@ -123,7 +123,7 @@ effects.
 Using v2 of this function you hurt composability; you limit yourself in
 the ways you can use this function further in your program.
 
-#### Purity and immutability
+#### Immutability and purity
 
 Now let's look why function purity demands immutability on a concrete
 example. We all know that strings in ruby are [mutable](http://stackoverflow.com/q/2608493/430254).
@@ -182,11 +182,56 @@ def upcase_string(input)
 end
 {% endcodeblock %}
 
-Just a minor modification gives us a lot of benefits:
+Just a minor modification gives us many benefits:
 we're no longer modifying the world and only returning a new string with
 the required modifications.
 
-### Immutable primitive objects
+How can we guarantee that functions do not mutate their arguments?
+By making the arguments immutable, of course!
+
+The key thing to take away here is that by making each object immutable,
+we can guarantee that functions will not create side effects and will
+always be pure.
+
+Hopefully, by now I have convinced you that immutable objects are useful.
+Now you probably understand that by limiting the 'reach' of the function
+to only the local function scope you automatically decrease the number
+of potential bugs and unpleasant surprises.
+However, you may still be unsure about the performance of the immutable objects,
+and think that it is wasteful to create a copy of an object each time
+it needs to be modified.
+The following part of the article will hopefully make everything clear.
+
+### Immutability and primitives
+
+Let's define what primitives are. For our purposes, we can refer to
+primitives as data types, that serve as basic building blocks of the language.
+Usually the primitives are directly supported by the language.
+Ints, floats, characters and booleans are primitives and are usually
+treated in a special way by languages.
+
+You don't need to do something like:
+{% codeblock lang:ruby%}
+# in fact you can't do this in Ruby
+num = Integer.new(99)
+{% endcodeblock %}
+
+You can use primitives directly:
+
+{% codeblock lang:ruby%}
+num = 99
+fnum = 3.14
+{% endcodeblock %}
+
+Why does a language usually divide objects into, well, objects and
+primitives? The reason is performance.
+Primitives are closer to computer hardware and creating an object each time a number
+is needed is slow.
+
+However, Ruby does not have true [primitives](http://en.wikipedia.org/wiki/Primitive_data_type),
+because [in Ruby, everything is an object](https://www.ruby-lang.org/en/about/).
+You can call methods and properties on numbers and extend them with
+user-defined methods.
 
 ### Strings
 
@@ -199,3 +244,6 @@ the required modifications.
 ### Immutability and copy on write
 
 ### Conclusion
+
+#TODO: references, multiple arguments, currying, nested functions,
+#defensive copying, immutable arrays
