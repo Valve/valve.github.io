@@ -276,20 +276,125 @@ and can cause potential problems.
 
 ### Strings
 
-Before diving into the specific implementation of Ruby strings, let's
+Before diving into the specifics of Ruby strings, let's
 talk about string immutability in general. In most languages strings are
-immutable, for example string concatenation or upcasing produces a new
-string rather than modifying in-place.
+immutable, that is string concatenation or upcasing produces a new
+string rather than modifying it in-place.
+
+Why do language designers usually make their string implementations
+immutable? To answer that we need to remember that strings are one of
+the most used data structures in any programming language.
+
+Let's consider the cases when string immutability is useful.
+
+#### Concurrency.
+
+This is a complex topic and I will talk about it later in
+the article. What you should know at this point is that when any data
+structure is immutable, it can be freely shared between threads
+without any locking or synchronization. Immutable data structures
+don't need synchronisation at all when used in multithreaded
+environments.
+
+Modern programming languages are designed from the ground to be
+concurrent (go, rust), and having a single string instance to be
+shared across multiple threads helps to save a lot of memory and avoid
+the necessity of making defensive copying when passing immutable strings
+around.
+
+#### Hash table keys
+
+More often than other data types, strings are used as keys in hash
+tables. This usage demands for strings to return the same hash code
+after the key and value were added to the hash table. With mutable
+strings a hash table would need to copy the string in order to guarantee
+the hash code staying the same. With immutable strings it is not needed.
+
+#### Security
+
+As I've mentioned, strings are used very frequently in any program.
+This entails a special treatment in terms of security.
+Strings are used when comparing user names and passwords, storing
+credit card numbers and much more. Having strings immutable guarantees
+that a bad party will not be able to tamper with the string after it was
+created and used in a security critical context.
+
+There is a performance downside of immutable strings.
+Mutable strings allow fast indexing and modifying  in-place,
+as if it were a regular array.
+
+#### String immutability and Ruby
+
+As with _primitives_, ruby has no real immutable strings. To be precise,
+Ruby strings are mutable with an immutable facade. That is, most
+operations on strings return new strings, while some of them still allow
+to modify the string in-place.
+
+Consider these examples:
+
+{% codeblock lang:ruby %}
+# immutable operations
+s = "hello"
+puts s.object_id # 70093095097920
+s += ", world"
+puts s.object_id # 70093096228400
+s = s.upcase
+puts s.object_id # 70093096177000
+
+# mutable operations
+s = "hello"
+puts s.object_id # 70093096113460
+s << ", world"
+puts s.object_id # 70093096113460
+s = s.upcase!
+puts s.object_id # 70093096113460
+{% endcodeblock %}
+
+As you can see mutable operations do not create new strings but rather
+modify existing in-place.
+
+##### Strings as hash keys
+
+Earlier I mentioned that mutable strings do not make good hash keys.
+Let me prove the point:
+
+{% codeblock lang:ruby %}
+bad_key = "hal9000"
+h = {bad_key => "Odyssey"}
+h[bad_key] # "Odyssey"
+bad_key << "!"
+h[bad_key] # nil
+{% endcodeblock %}
+
+You see that after I modified a string we can no longer find the value,
+because key's hashcode has changed! And since it's so easy to mutate the
+Ruby string, you can end up with a completely broken hash.
+This is the reason it is not recommended to use strings as hash keys.
+
+How can we remedy it?
+
+
+
+
+##### Strings as constants
+
+##### Symbols
 
 ### Immutable data structures
+
+#### Okasaki
+
+#### Clojure, Scala, Csharp
 
 #### Immutable collections
 
 ### Immutability and multithreading
 
+#### Huge topic
+
 ### Immutability and copy on write
 
 ### Conclusion
 
-#TODO: references, multiple arguments, currying, nested functions,
-#defensive copying, immutable arrays
+TODO: references, multiple arguments, currying, nested functions,
+defensive copying, immutable arrays
