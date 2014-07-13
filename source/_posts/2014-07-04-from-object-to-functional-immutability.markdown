@@ -372,21 +372,78 @@ Ruby string, you can end up with a completely broken hash.
 This is the reason it is not recommended to use strings as hash keys.
 
 How can we remedy it?
+First option is to freeze the string:
 
+{% codeblock lang:ruby %}
+better_key = "hall9000".freeze
+h = {better_key => "Odyssey"}
+better_key << "!"
+# RuntimeError: can't modify frozen String
+{% endcodeblock %}
 
+Second, and better option is to use [symbols](http://www.ruby-doc.org/core-2.1.2/Symbol.html),
+which are immutable versions of strings often used as identifiers.
 
+{% codeblock lang:ruby %}
+best_key = :hal9000
+h = {best_key => "Odyssey"}
+best_key << :a
+NoMethodError: undefined method `<<' for :hal9000:Symbol
+{% endcodeblock %}
 
-##### Strings as constants
+When using literal symbols as hash keys, Ruby provides a shorter syntax:
 
-##### Symbols
+{% codeblock lang:ruby %}
+h = {hal9000: "Odyssey"}
+# hal9000: gets converted to :hal9000 =>
+{% endcodeblock %}
+
+You might say at this point, "Why can't I just use symbols instead of
+strings, because they're immutable equivalents?". The short answer is you may not be
+able to, depending on your use case.
+The reason is that symbols don't have the immutable equivalents of
+string's many methods, so it's not really convenient to use symbols as an immutable
+drop-in replacement.
+Just compare the number of methods in [Symbol](http://www.ruby-doc.org/core-2.1.2/Symbol.html)
+and [String](http://www.ruby-doc.org/core-2.1.2/String.html) to see the
+difference.
 
 ### Immutable data structures
 
-#### Okasaki
+So far my discussion was around built-in data types and their
+relationships with immutability. Real-life applications, however,
+require using data structures in order to be efficient.
 
-#### Clojure, Scala, Csharp
+What is a data structure?
 
-#### Immutable collections
+It's a complex question, but you can think of
+it as a way to organize other, simpler data structures in a convenient of efficient
+way. Some data structures are designed for ease of use, while others are
+built solely with efficiency considerations in mind.
+
+We all know lists, queues, hash tables, arrays, trees and many, many
+more. These data structres often have both mutable and immutable implementations.
+
+Mutable implementations are considered 'classic', because they are more
+widely used, have been around for a longer time and generally are easier to implement.
+Immutable counterparts offer advantages from the concurrency and security perspective.
+
+While some people use 'immutable' and 'persistent' terms interchangeably,
+they are not. [Persistent data structure](http://en.wikipedia.org/wiki/Persistent_data_structure)
+(not to be confused with persistence on disk), is an immutable data structure that keeps and reuses large
+parts of itself while constructing an immutable copy. As an example, you can think of a persistent
+linked list that reuses its tail when appending a new node.
+If you're interested in functional, persistent data structures, have a
+look at [Purely functional data structures](http://www.amazon.com/Purely-Functional-Structures-Chris-Okasaki/dp/0521663504)
+by Chris Okasaki.
+
+Let me also add that many modern programming languages that focus on
+concurrency have their data structures implemented in an immutable
+fashion: [Scala](http://www.scala-lang.org/api/2.11.1/#scala.collection.immutable.package)
+offers both immutable and mutable collections. [Clojure](http://clojure.org/functional_programming#Functional Programming--Immutable Data Structures) and  [C#](http://msdn.microsoft.com/en-us/library/dn385366\(v=vs.110\).aspx) offer immutable collections as well.
+
+So let's go ahead and implement a classic, mutable queue in Ruby and
+then reimplement it as immutable!
 
 ### Immutability and multithreading
 
