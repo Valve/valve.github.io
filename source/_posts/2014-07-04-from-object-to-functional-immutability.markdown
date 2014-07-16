@@ -442,14 +442,136 @@ concurrency have their data structures implemented in an immutable
 fashion: [Scala](http://www.scala-lang.org/api/2.11.1/#scala.collection.immutable.package)
 offers both immutable and mutable collections. [Clojure](http://clojure.org/functional_programming#Functional Programming--Immutable Data Structures) and  [C#](http://msdn.microsoft.com/en-us/library/dn385366\(v=vs.110\).aspx) offer immutable collections as well.
 
-So let's go ahead and implement a classic, mutable queue in Ruby and
-then reimplement it as immutable!
+So let's go ahead and implement a classic, mutable stack in Ruby and
+then reimplement it as immutable.
+A [stack](http://en.wikipedia.org/wiki/Stack_(abstract_data_type) is a data structure that follows this interface:
+
+```
+self push(item)
+self pop()
+item peek()
+bool empty?
+```
+
+Mutable implementation that uses ruby array as a backing store:
+
+{% codeblock lang:ruby %}
+class Stack
+  def initialize
+    @store = []
+  end
+
+  def push(item)
+    @store.push(item)
+    self
+  end
+
+  def pop
+    @store.pop
+    @store
+  end
+
+  def peek
+    @store[-1]
+  end
+
+  def empty?
+    @store.empty?
+  end
+end
+{% endcodeblock %}
+
+You see that this implementation is a thin wrapper around array.
+Whenever you call `stack.push(item)`, you're modifying this array
+in-place. This implementation posesses all weaknesses that we discussed
+previously.
+
+Now to an immutable implementation:
+
+{% codeblock lang:ruby %}
+
+class ImmutableStack
+  class EmptyStack
+    def empty?
+      true
+    end
+
+    def push(item)
+      ImmutableStack.new(item, self)
+    end
+
+    def pop
+      raise 'Cannot pop empty stack'
+    end
+
+    def peek
+      raise 'Cannot peek empty stack'
+    end
+  end
+
+  def self.empty
+    EmptyStack.new
+  end
+
+  def initialize(head, tail)
+    @head = head
+    @tail = tail
+  end
+
+  def peek
+    head
+  end
+
+  def push(item)
+    ImmutableStack.new(item, self)
+  end
+
+  def pop
+    tail
+  end
+
+  def empty?
+    false
+  end
+end
+{% endcodeblock %}
+
+Usage pattern:
+
+{% codeblock lang:ruby %}
+
+s = ImmutableStack.empty
+s = s.push(99)
+s = s.push(100)
+puts s.peek # 100
+s = s.pop
+puts s.peek # 99
+s.peek # Cannot peek empty stack (RuntimeError)
+
+{% endcodeblock %}
+
+You see that each destructive operation does not mutate the stack but
+rather returns a copy of itself with required modifications.
+What's more, it reuses a large portion of itself while doing so, thus
+making this stack a persistent data structure.
+
+Unfortunately, Ruby does not allow to directly create private
+constructors and users can potentially call
+
+{% codeblock lang:ruby %}
+
+ImmutableStack.new(1, ImmutableStack.empty)
+
+{% endcodeblock %}
+
+This is a topic for another article.
 
 ### Immutability and multithreading
 
 #### Huge topic
 
-### Immutability and copy on write
+### Immutability and efficiency
+#### copy on write
 
 ### Conclusion
 
