@@ -456,7 +456,7 @@ bool empty?
 Mutable implementation that uses ruby array as a backing store:
 
 {% codeblock lang:ruby %}
-class Stack
+class MutableStack
   def initialize
     @store = []
   end
@@ -564,16 +564,38 @@ ImmutableStack.new(1, ImmutableStack.empty)
 
 {% endcodeblock %}
 
-This is a topic for another article.
+But I don't want to make this article too long and will omit this use
+case.
 
 ### Immutability and multithreading
 
-#### Huge topic
 
 ### Immutability and efficiency
-#### copy on write
+#### copy on write/persistence
+#### all data structures are trees?
 
 ### Conclusion
 
-TODO: references, multiple arguments, currying, nested functions,
-defensive copying, immutable arrays
+Now that you've read the article, you might have got an impression that
+immutability is a silver bullet.  It is not.
+It is one of the possible ways to design software with its own strengths
+and weaknesses. Immutability let's you design your functions and data
+structures in a completely different way, gaining much and losing much too.
+We've all been living in a world where the sequential computation was
+the de-facto standard.
+And in this world, in real life, immutability may not be worth it.
+For a single core computer, immutability has too much overhead.
+You must carefully control the state,
+pay close attention to reusing and copying in order to be efficient.
+In this world
+the performance impact that some of the immutable data structures incur can
+be too significant.
+
+But this world is changing and the sequential model is going away.
+We all have smartphones with 2 or 4 cores. Our smart watches will have 8
+cores in a couple of years, which means that concurrent is becoming new
+sequential. If we want to exploit the power of modern hardware, we need
+to embrace the concurrent way of doing things. This is where
+immutability advantages outweight its weak parts.
+I think that immutability is the way you should design your
+software now to be prepared for the concurrent future.
