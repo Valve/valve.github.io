@@ -29,11 +29,6 @@ to you several concrete examples where functional programming is useful
 or elegant. I will show you the old way of doing things in Ruby and the
 new, more functional way of doing same thing in Ruby again.
 
-For the sake of completeness, I'll be using Scala and Rust in these
-examples as well.  Scala is a known functional language, but why Rust?
-
-Just because I like it.
-
 <!--more-->
 
 Let me start by saying that this article assumes you're interested in
@@ -291,7 +286,7 @@ Let's consider the cases when string immutability is useful.
 
 This is a complex topic and I will talk about it later in
 the article. What you should know at this point is that when any data
-structure is immutable, it can be freely shared between threads
+structure is immutable, it can be freely shared across threads
 without any locking or synchronization. Immutable data structures
 don't need synchronisation at all when used in multithreaded
 environments.
@@ -426,7 +421,7 @@ more. These data structres often have both mutable and immutable implementations
 
 Mutable implementations are considered 'classic', because they are more
 widely used, have been around for a longer time and generally are easier to implement.
-Immutable counterparts offer advantages from the concurrency and security perspective.
+Immutable counterparts offer advantages from the concurrency and security perspectives.
 
 While some people use 'immutable' and 'persistent' terms interchangeably,
 they are not. [Persistent data structure](http://en.wikipedia.org/wiki/Persistent_data_structure)
@@ -567,12 +562,23 @@ ImmutableStack.new(1, ImmutableStack.empty)
 But I don't want to make this article too long and will omit this use
 case.
 
-### Immutability and multithreading
+If you want a good ruby library of immutable collections, I suggest
+using [hamster](https://github.com/hamstergem/hamster).
 
+#### Immutable data structures and multithreading
 
-### Immutability and efficiency
-#### copy on write/persistence
-#### all data structures are trees?
+When writing a multi-threaded applications, follow these rules:
+
+1. Try not to share data across threads.
+2. If you have to share your data across threds, make this data immutable.
+3. If you can't avoid sharing mutable data, synchronize access to that
+   data with synchronization constructs, such as [Mutex](http://www.ruby-doc.org/core-2.1.1/Mutex.html).
+
+So with our two stack implementations it is safe to share an
+immutable version across multiple threads, because they will not be able to
+modify it in place. Whenever a thread makes a `push` or a `pop`, a
+new instance of the stack is created and returned so that the existing
+instance is never changed.
 
 ### Conclusion
 
@@ -583,11 +589,11 @@ and weaknesses. Immutability let's you design your functions and data
 structures in a completely different way, gaining much and losing much too.
 We've all been living in a world where the sequential computation was
 the de-facto standard.
-And in this world, in real life, immutability may not be worth it.
+And probably in the past immutability was not worth it.
 For a single core computer, immutability has too much overhead.
 You must carefully control the state,
 pay close attention to reusing and copying in order to be efficient.
-In this world
+In this case
 the performance impact that some of the immutable data structures incur can
 be too significant.
 
