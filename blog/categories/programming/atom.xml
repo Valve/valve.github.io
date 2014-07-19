@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: rust | valve's]]></title>
-  <link href="http://valve.github.io/blog/categories/rust/atom.xml" rel="self"/>
+  <title><![CDATA[Category: programming | valve's]]></title>
+  <link href="http://valve.github.io/blog/categories/programming/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
   <updated>2014-07-19T22:17:49+04:00</updated>
   <id>http://valve.github.io/</id>
@@ -905,47 +905,6 @@ to embrace the concurrent way of doing things. This is where
 immutability advantages outweight its weak parts.
 I think that immutability is the way you should design your
 software now to be prepared for the concurrent future.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[reading command line arguments in rust]]></title>
-    <link href="http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust/"/>
-    <updated>2013-07-03T13:31:00+04:00</updated>
-    <id>http://valve.github.io/blog/2013/07/03/reading-command-line-arguments-in-rust</id>
-    <content type="html"><![CDATA[<p>Since all rust hello world tutorials usually start like this:
-<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="n">println</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">Hello</span><span class="p">,</span> <span class="n">world</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>It&rsquo;s unclear where to take command line arguments.</p>
-
-<!--more-->
-
-
-<p>The solution:
-<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">os</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="k">let</span> <span class="n">args</span><span class="o">:</span> <span class="o">~</span><span class="p">[</span><span class="o">~</span><span class="n">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">::</span><span class="n">args</span><span class="p">();</span>
-</span><span class='line'>  <span class="n">println</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">to_str</span><span class="p">());</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure></notextile></div></p>
-
-<p>This will give you a vector with strings where first string will be the app being run and the rest is the
-arguments provided.</p>
-
-<p><code>rust-0.7</code></p>
 ]]></content>
   </entry>
   

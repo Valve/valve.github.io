@@ -9,7 +9,9 @@
   <meta name="author" content="valve">
 
   
-  <meta name="description" content="Every developer has heard of full-text search. However, most developers search with SQL and relational databases. Almost every developer knows deep &hellip;">
+  <meta name="description" content="Like many other developers, I&rsquo;ve been intrigued with functional
+programming for a long while. I remember myself reading articles
+promising &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -75,6 +77,67 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/07/04/from-object-to-functional-immutability/">From Object to Functional — Immutability</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-07-04T15:30:00+04:00" pubdate data-updated="true">Jul 4<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Like many other developers, I&rsquo;ve been intrigued with functional
+programming for a long while. I remember myself reading articles
+promising programming heaven for those who are brave enough to go
+functional. I bought a used <a href="http://book.realworldhaskell.org/">Real World Haskell</a>
+on Ebay, but sadly never finished it.
+I then bought <a href="http://www.amazon.com/Scala-Impatient-Cay-S-Horstmann/dp/0321774094">Scala for the Impatient</a>,
+but this time had the persistence to finish the book.</p>
+
+<p>All these years functional programming seemed like a holy grail for me,
+but as a true holy grail, I was afraid it was meant to stay
+undiscovered to me.</p>
+
+<p>All these years I paid my bills writing Ruby-on-Rails and JavaScript
+code and never made this functional leap. I never became a full-time
+Haskell or Scala developer and probably will never become one.</p>
+
+<p>But you know what? It&rsquo;s possible to be slightly more functional with
+<em>usual</em> languages we&rsquo;re using every day. This article will try to demonstrate
+to you several concrete examples where functional programming is useful
+or elegant. I will show you the old way of doing things in Ruby and the
+new, more functional way of doing same thing in Ruby again.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/07/04/from-object-to-functional-immutability/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -407,6 +470,10 @@ You might try to set them in mailer:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/07/04/from-object-to-functional-immutability/">From Object to Functional — Immutability</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/">Introduction to Full Text Search for Rails Developers</a>
       </li>
     
@@ -422,11 +489,36 @@ You might try to set them in mailer:</p>
         <a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
-      </li>
-    
   </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/valve">@valve</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'valve',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
 </section>
 
 
@@ -461,7 +553,24 @@ You might try to set them in mailer:</p>
 
 
 
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
 
 
 

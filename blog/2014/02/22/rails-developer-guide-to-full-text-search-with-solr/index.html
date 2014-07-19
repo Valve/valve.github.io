@@ -140,12 +140,12 @@ and it is possible to do so only by keeping it really simple.</em></p>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  personal  ruby -v
+</pre></td><td class='code'><pre><code class=''><span class='line'>personal  ruby -v
 </span><span class='line'>ruby 2.0.0p353 (2013-11-22 revision 43784) [x86_64-darwin13.0.0]
-</span><span class='line'>➜  personal  rails -v
+</span><span class='line'>personal  rails -v
 </span><span class='line'>Rails 4.0.2
-</span><span class='line'>➜  personal  rails new neibo
-</span><span class='line'>      create  
+</span><span class='line'>personal  rails new neibo
+</span><span class='line'>      create
 </span><span class='line'>      create  README.rdoc
 </span><span class='line'>      create  Rakefile
 </span><span class='line'>      create  config.ru
@@ -233,9 +233,9 @@ as we will not need them. We should also add the <code>pg</code> gem to talk to 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rails g migration create_people
-</span><span class='line'>      invoke  active_record
-</span><span class='line'>      create    db/migrate/20140222113048_create_people.rb</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rails g migration create_people
+</span><span class='line'>    invoke  active_record
+</span><span class='line'>    create    db/migrate/20140222113048_create_people.rb</span></code></pre></td></tr></table></div></figure>
 
 
 
@@ -255,7 +255,7 @@ as we will not need them. We should also add the <code>pg</code> gem to talk to 
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># db/migrate/20140222113048_create_people.rb </span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># db/migrate/20140222113048_create_people.rb</span>
 </span><span class='line'><span class="k">class</span> <span class="nc">CreatePeople</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Migration</span>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">change</span>
 </span><span class='line'>    <span class="n">create_table</span> <span class="ss">:people</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
@@ -293,8 +293,8 @@ denies the browser geolocation permission.</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rake db:create
-</span><span class='line'>➜  neibo  rake db:migrate
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rake db:create
+</span><span class='line'> neibo  rake db:migrate
 </span><span class='line'>==  CreatePeople: migrating ===================================================
 </span><span class='line'>-- create_table(:people)
 </span><span class='line'>   -> 0.0080s
@@ -385,7 +385,7 @@ denies the browser geolocation permission.</p>
 </span><span class='line'><span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  &lt;h2&gt;Hello, guest&lt;/h2&gt;</span>
 </span><span class='line'><span class="x">  &lt;h3&gt;</span>
-</span><span class='line'><span class="x">    Fill your profile so that people could find you. </span>
+</span><span class='line'><span class="x">    Fill your profile so that people could find you.</span>
 </span><span class='line'><span class="x">    Allow browser to access your location if you want to be found by people near you.</span>
 </span><span class='line'><span class="x">  &lt;/h3&gt;</span>
 </span><span class='line'>
@@ -609,8 +609,8 @@ I totally understand your confusion. Let&rsquo;s break this mess into pieces:</p
 
 <ol>
 <li>Solr &ndash; a Java server that runs as a separate service and communicates
-via XML over HTTP API. It is generally considered a robust and full-featured
-— yet hard to learn full-text search solution.
+via XML over HTTP API. It is generally considered a robust and full-featured</li>
+<li>yet hard to learn full-text search solution.
 The only way you can communicate directly with Solr from a Rails application
 is to send rather cryptic XML requests.</li>
 <li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around the
@@ -988,6 +988,10 @@ and then run the integration tests.</p>
   <a href="//twitter.com/share" class="twitter-share-button" data-url="http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/" data-via="" data-counturl="http://valve.github.io/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/" >Tweet</a>
   
   
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
   
 </div>
 
@@ -996,6 +1000,8 @@ and then run the integration tests.</p>
       
         <a class="basic-alignment left" href="/blog/2013/10/26/constant-resolution-in-ruby/" title="Previous Post: Constant resolution in Ruby">&laquo; Constant resolution in Ruby</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2014/07/04/from-object-to-functional-immutability/" title="Next Post: from object to functional — immutability">from object to functional — immutability &raquo;</a>
       
     </p>
   </footer>
@@ -1016,6 +1022,10 @@ and then run the integration tests.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/07/04/from-object-to-functional-immutability/">From Object to Functional — Immutability</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/02/22/rails-developer-guide-to-full-text-search-with-solr/">Introduction to Full Text Search for Rails Developers</a>
       </li>
     
@@ -1031,11 +1041,36 @@ and then run the integration tests.</p>
         <a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a>
       </li>
     
-      <li class="post">
-        <a href="/blog/2013/07/13/existential-operator-in-coffeescript/">Existential Operator in CoffeeScript</a>
-      </li>
-    
   </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/valve">@valve</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'valve',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
 </section>
 
 
@@ -1074,7 +1109,24 @@ and then run the integration tests.</p>
 
 
 
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
 
 
 

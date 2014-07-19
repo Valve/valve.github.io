@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-02-24T11:33:19+04:00</updated>
+  <updated>2014-07-19T22:17:49+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,772 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[from object to functional — immutability]]></title>
+    <link href="http://valve.github.io/blog/2014/07/04/from-object-to-functional-immutability/"/>
+    <updated>2014-07-04T15:30:00+04:00</updated>
+    <id>http://valve.github.io/blog/2014/07/04/from-object-to-functional-immutability</id>
+    <content type="html"><![CDATA[<p>Like many other developers, I&rsquo;ve been intrigued with functional
+programming for a long while. I remember myself reading articles
+promising programming heaven for those who are brave enough to go
+functional. I bought a used <a href="http://book.realworldhaskell.org/">Real World Haskell</a>
+on Ebay, but sadly never finished it.
+I then bought <a href="http://www.amazon.com/Scala-Impatient-Cay-S-Horstmann/dp/0321774094">Scala for the Impatient</a>,
+but this time had the persistence to finish the book.</p>
+
+<p>All these years functional programming seemed like a holy grail for me,
+but as a true holy grail, I was afraid it was meant to stay
+undiscovered to me.</p>
+
+<p>All these years I paid my bills writing Ruby-on-Rails and JavaScript
+code and never made this functional leap. I never became a full-time
+Haskell or Scala developer and probably will never become one.</p>
+
+<p>But you know what? It&rsquo;s possible to be slightly more functional with
+<em>usual</em> languages we&rsquo;re using every day. This article will try to demonstrate
+to you several concrete examples where functional programming is useful
+or elegant. I will show you the old way of doing things in Ruby and the
+new, more functional way of doing same thing in Ruby again.</p>
+
+<!--more-->
+
+
+<p>Let me start by saying that this article assumes you&rsquo;re interested in
+functional programming. It also assumes that you&rsquo;ve probably seen
+other examples of functional code before.</p>
+
+<p>I&rsquo;m going to split this article into several parts and each part will
+explain a specific example.</p>
+
+<h2>Part 1: Immutability</h2>
+
+<p>What is immutability? When people speak about immutability they usually
+mean <a href="http://en.wikipedia.org/wiki/Immutable_object">immutable objects</a>.
+Quoting from wikipedia:</p>
+
+<blockquote><blockquote><p>an immutable object is an object whose state cannot be modified after it is created.
+This is in contrast to a mutable object, which can be modified after it is created.</p></blockquote></blockquote>
+
+<p>Very simple concept with far going consequences.</p>
+
+<p>First let&rsquo;s define what &lsquo;whose state cannot be modified&rsquo; really means.
+At first you may think that such object is useless, how can we possibly
+use an object if we cannot change it?
+Usually what happens is that an immutable object creates a copy of
+itself with desired modifications. The original object always stays
+unchanged. You will see the examples of it further in the article.</p>
+
+<h3>Immutability and functional programming</h3>
+
+<p>Now another foundational question: why does functional programming favor
+immutable values and data structures over mutable? Is <em>real</em> functional
+programming possible with mutable values?
+You probably know that functional programming is more than &lsquo;programming
+with functions&rsquo;. It also requires the functions to be <em>pure</em>.
+I&rsquo;m not a mathematician and probably my explanation of pure functions will
+not be scientifically correct, but you can think of them simply as functions that
+always accept an argument, always return the result and
+the computing of the result depends solely on the argument.
+In other words, a pure function cannot depend on some other data, called
+<em>state</em>, existing elsewhere, to influence how the result is computed.
+The only thing that dictates how the result is computed is the
+function argument. Pure functions cannot change the external state
+either, which is called <em>creating side effects</em>.</p>
+
+<p>Sometimes programmers call the external state as &lsquo;the world&rsquo; and refer
+to pure functions as functions that cannot depend on &lsquo;the world&rsquo; or
+&lsquo;read the world state&rsquo;, nor change the world while making its job.</p>
+
+<p>Why bother at all about the purity of functions? The reason for this is
+composability. When all your functions are pure, you can compose large
+programs from small functions. Knowing that a function is pure is knowing
+that it operates only inside itself, thus providing guarantees
+that it will not change the external state, i.e. will not make side effects.</p>
+
+<p>Is it possible to write a real program using only pure functions?
+How can you talk to the database, write to files, charge
+credit cards and do all other stuff the real programs do? Functional
+applications are usually built using a pure core, where the bulk of
+the logic lives and a thin, impure shell, that provides access to the
+pure core from the outside world. This way you have a large part
+of the code that is easy to reason about, easy to test and understand.</p>
+
+<p>Example of a pure function:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">sum_two_numbers</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can see that this function computes the result only using its
+arguments.</p>
+
+<p>Example of an impure function:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">sum_two_numbers</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;calculating sum of two numbers&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This function writes to the file system besides computing the result.
+In other words, this function changes the world by creating side
+effects.</p>
+
+<p>Using v2 of this function you hurt composability; you limit yourself in
+the ways you can use this function further in your program.</p>
+
+<h4>Immutability and purity</h4>
+
+<p>Now let&rsquo;s look why function purity demands immutability on a concrete
+example. We all know that strings in ruby are <a href="http://stackoverflow.com/q/2608493/430254">mutable</a>.
+You can mutate the string with:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;Hello&quot;</span>
+</span><span class='line'><span class="c1"># mutating with &#39;&lt;&lt;&#39;</span>
+</span><span class='line'><span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;, world&quot;</span>
+</span><span class='line'><span class="c1"># mutating with bang methods</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">upcase!</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span>
+</span><span class='line'><span class="c1"># =&gt; &quot;HELLO, WORLD&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This code fragment modifies the string in-place, mutating it.
+Now let&rsquo;s use the string as a function argument:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">upcase_string</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">input</span><span class="o">.</span><span class="n">upcase!</span>
+</span><span class='line'>  <span class="n">input</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This method mutates the argument and returns it.
+On the surface, this looks OK, but we have just inadvertently created a
+side effect. Any external code that relied on this string will
+possibly break.</p>
+
+<p>Let&rsquo;s create an example of this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">upcase_string</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">input</span><span class="o">.</span><span class="n">upcase!</span>
+</span><span class='line'>  <span class="n">input</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="n">current_user_name</span> <span class="o">=</span> <span class="n">get_current_user</span><span class="o">.</span><span class="n">name</span>
+</span><span class='line'><span class="n">upcased_user_name</span> <span class="o">=</span> <span class="n">upcase_string</span><span class="p">(</span><span class="n">current_user_name</span><span class="p">)</span>
+</span><span class='line'><span class="c1"># ...</span>
+</span><span class='line'><span class="c1"># ...</span>
+</span><span class='line'><span class="c1"># somewhere else still thinking that current_user_name is downcased</span>
+</span><span class='line'><span class="k">if</span> <span class="n">current_user_name</span> <span class="o">==</span> <span class="s1">&#39;admin&#39;</span>
+</span><span class='line'>  <span class="c1"># this will never be true</span>
+</span><span class='line'>  <span class="c1"># ...</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You see now that in order to keep function pure we should never mutate
+its arguments, but create new objects and return them instead.
+Same function, but this time pure:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">upcase_string</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">input</span><span class="o">.</span><span class="n">upcase</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Just a minor modification gives us many benefits:
+we&rsquo;re no longer modifying the world and only returning a new string with
+the required modifications.</p>
+
+<p>How can we guarantee that functions do not mutate their arguments?
+By making the arguments immutable, of course!</p>
+
+<p>The key thing to take away here is that by making each object immutable,
+we can guarantee that functions will not create side effects and will
+always be pure.</p>
+
+<p>Hopefully, by now I have convinced you that immutable objects are useful.
+Now you probably understand that by limiting the &lsquo;reach&rsquo; of the function
+to only the local function scope you automatically decrease the number
+of potential bugs and unpleasant surprises.
+However, you may still be unsure about the performance of the immutable objects,
+and think that it is wasteful to create a copy of an object each time
+it needs to be modified.
+The following part of the article will hopefully make everything clear.</p>
+
+<h3>Immutability and primitives</h3>
+
+<p>Let&rsquo;s define what primitives are. For our purposes, we can refer to
+primitives as data types, that serve as basic building blocks of the language.
+Usually the primitives are directly supported by the language.
+Ints, floats, characters and booleans are primitives and are usually
+treated in a special way by languages.</p>
+
+<p>You don&rsquo;t need to do something like:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># in fact you can&#39;t do this in Ruby</span>
+</span><span class='line'><span class="n">num</span> <span class="o">=</span> <span class="nb">Integer</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">99</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can use primitives directly:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">num</span> <span class="o">=</span> <span class="mi">99</span>
+</span><span class='line'><span class="n">fnum</span> <span class="o">=</span> <span class="mi">3</span><span class="o">.</span><span class="mi">14</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Why does a language usually divide objects into, well, objects and
+primitives? The reason is performance.
+Primitives are closer to computer hardware and creating an object each time a number
+is needed is slow.</p>
+
+<p>However, Ruby does not have true <a href="http://en.wikipedia.org/wiki/Primitive_data_type">primitives</a>,
+because <a href="https://www.ruby-lang.org/en/about/">in Ruby, everything is an object</a>.
+You can call methods and properties on numbers and extend them with
+user-defined methods. I will still call them primitives, because it&rsquo;s
+what they are at least on a conceptual level.</p>
+
+<p>On one hand, primitives behave like immutable objects
+in Ruby:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">i</span> <span class="o">=</span> <span class="mi">99</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">i</span><span class="o">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="c1"># =&gt; 7</span>
+</span><span class='line'><span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">i</span><span class="o">.</span><span class="n">object_id</span>
+</span><span class='line'><span class="c1"># =&gt; 12</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This snippet demonstrates that you cannot modify a number. In real life
+this doesn&rsquo;t make sense either, if you have number 4 it&rsquo;s number 4,
+eternal and beautiful. If you add 1 to it, you get completely different
+number 5, the old 4 stays the same.</p>
+
+<p>On the other hand, you can define your own methods and properties:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">TrueClass</span>
+</span><span class='line'>  <span class="kp">attr_accessor</span> <span class="ss">:name</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'><span class="kp">true</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;one&quot;</span>
+</span><span class='line'><span class="kp">false</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;two&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Integers and floats are frozen by default, while booleans are not.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="mi">1</span><span class="o">.</span><span class="n">frozen?</span> <span class="c1"># true</span>
+</span><span class='line'><span class="mi">3</span><span class="o">.</span><span class="mi">14</span><span class="o">.</span><span class="n">frozen?</span> <span class="c1"># true</span>
+</span><span class='line'><span class="kp">true</span><span class="o">.</span><span class="n">frozen?</span> <span class="c1"># false</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So while some primitives are not frozen, ruby does not provide mutation
+methods for them and they <em>usually</em> can be treated as immutable objects.
+You should remember that this easily overriden (as everything in Ruby)
+and can cause potential problems.</p>
+
+<h3>Strings</h3>
+
+<p>Before diving into the specifics of Ruby strings, let&rsquo;s
+talk about string immutability in general. In most languages strings are
+immutable, that is string concatenation or upcasing produces a new
+string rather than modifying it in-place.</p>
+
+<p>Why do language designers usually make their string implementations
+immutable? To answer that we need to remember that strings are one of
+the most used data structures in any programming language.</p>
+
+<p>Let&rsquo;s consider the cases when string immutability is useful.</p>
+
+<h4>Concurrency.</h4>
+
+<p>This is a complex topic and I will talk about it later in
+the article. What you should know at this point is that when any data
+structure is immutable, it can be freely shared across threads
+without any locking or synchronization. Immutable data structures
+don&rsquo;t need synchronisation at all when used in multithreaded
+environments.</p>
+
+<p>Modern programming languages are designed from the ground to be
+concurrent (go, rust), and having a single string instance to be
+shared across multiple threads helps to save a lot of memory and avoid
+the necessity of making defensive copying when passing immutable strings
+around.</p>
+
+<h4>Hash table keys</h4>
+
+<p>More often than other data types, strings are used as keys in hash
+tables. This usage demands for strings to return the same hash code
+after the key and value were added to the hash table. With mutable
+strings a hash table would need to copy the string in order to guarantee
+the hash code staying the same. With immutable strings it is not needed.</p>
+
+<h4>Security</h4>
+
+<p>As I&rsquo;ve mentioned, strings are used very frequently in any program.
+This entails a special treatment in terms of security.
+Strings are used when comparing user names and passwords, storing
+credit card numbers and much more. Having strings immutable guarantees
+that a bad party will not be able to tamper with the string after it was
+created and used in a security critical context.</p>
+
+<p>There is a performance downside of immutable strings.
+Mutable strings allow fast indexing and modifying  in-place,
+as if it were a regular array.</p>
+
+<h4>String immutability and Ruby</h4>
+
+<p>As with <em>primitives</em>, ruby has no real immutable strings. To be precise,
+Ruby strings are mutable with an immutable facade. That is, most
+operations on strings return new strings, while some of them still allow
+to modify the string in-place.</p>
+
+<p>Consider these examples:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># immutable operations</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093095097920</span>
+</span><span class='line'><span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, world&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093096228400</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">upcase</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093096177000</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1"># mutable operations</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093096113460</span>
+</span><span class='line'><span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;, world&quot;</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093096113460</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">upcase!</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">object_id</span> <span class="c1"># 70093096113460</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see mutable operations do not create new strings but rather
+modify existing in-place.</p>
+
+<h5>Strings as hash keys</h5>
+
+<p>Earlier I mentioned that mutable strings do not make good hash keys.
+Let me prove the point:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">bad_key</span> <span class="o">=</span> <span class="s2">&quot;hal9000&quot;</span>
+</span><span class='line'><span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="n">bad_key</span> <span class="o">=&gt;</span> <span class="s2">&quot;Odyssey&quot;</span><span class="p">}</span>
+</span><span class='line'><span class="n">h</span><span class="o">[</span><span class="n">bad_key</span><span class="o">]</span> <span class="c1"># &quot;Odyssey&quot;</span>
+</span><span class='line'><span class="n">bad_key</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;!&quot;</span>
+</span><span class='line'><span class="n">h</span><span class="o">[</span><span class="n">bad_key</span><span class="o">]</span> <span class="c1"># nil</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You see that after I modified a string we can no longer find the value,
+because key&rsquo;s hashcode has changed! And since it&rsquo;s so easy to mutate the
+Ruby string, you can end up with a completely broken hash.
+This is the reason it is not recommended to use strings as hash keys.</p>
+
+<p>How can we remedy it?
+First option is to freeze the string:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">better_key</span> <span class="o">=</span> <span class="s2">&quot;hall9000&quot;</span><span class="o">.</span><span class="n">freeze</span>
+</span><span class='line'><span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="n">better_key</span> <span class="o">=&gt;</span> <span class="s2">&quot;Odyssey&quot;</span><span class="p">}</span>
+</span><span class='line'><span class="n">better_key</span> <span class="o">&lt;&lt;</span> <span class="s2">&quot;!&quot;</span>
+</span><span class='line'><span class="c1"># RuntimeError: can&#39;t modify frozen String</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Second, and better option is to use <a href="http://www.ruby-doc.org/core-2.1.2/Symbol.html">symbols</a>,
+which are immutable versions of strings often used as identifiers.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">best_key</span> <span class="o">=</span> <span class="ss">:hal9000</span>
+</span><span class='line'><span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="n">best_key</span> <span class="o">=&gt;</span> <span class="s2">&quot;Odyssey&quot;</span><span class="p">}</span>
+</span><span class='line'><span class="n">best_key</span> <span class="o">&lt;&lt;</span> <span class="ss">:a</span>
+</span><span class='line'><span class="ss">NoMethodError</span><span class="p">:</span> <span class="n">undefined</span> <span class="nb">method</span> <span class="sb">`&lt;&lt;&#39; for :hal9000:Symbol</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When using literal symbols as hash keys, Ruby provides a shorter syntax:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">h</span> <span class="o">=</span> <span class="p">{</span><span class="ss">hal9000</span><span class="p">:</span> <span class="s2">&quot;Odyssey&quot;</span><span class="p">}</span>
+</span><span class='line'><span class="c1"># hal9000: gets converted to :hal9000 =&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You might say at this point, &ldquo;Why can&rsquo;t I just use symbols instead of
+strings, because they&rsquo;re immutable equivalents?&rdquo;. The short answer is you may not be
+able to, depending on your use case.
+The reason is that symbols don&rsquo;t have the immutable equivalents of
+string&rsquo;s many methods, so it&rsquo;s not really convenient to use symbols as an immutable
+drop-in replacement.
+Just compare the number of methods in <a href="http://www.ruby-doc.org/core-2.1.2/Symbol.html">Symbol</a>
+and <a href="http://www.ruby-doc.org/core-2.1.2/String.html">String</a> to see the
+difference.</p>
+
+<h3>Immutable data structures</h3>
+
+<p>So far my discussion was around built-in data types and their
+relationships with immutability. Real-life applications, however,
+require using data structures in order to be efficient.</p>
+
+<p>What is a data structure?</p>
+
+<p>It&rsquo;s a complex question, but you can think of
+it as a way to organize other, simpler data structures in a convenient of efficient
+way. Some data structures are designed for ease of use, while others are
+built solely with efficiency considerations in mind.</p>
+
+<p>We all know lists, queues, hash tables, arrays, trees and many, many
+more. These data structres often have both mutable and immutable implementations.</p>
+
+<p>Mutable implementations are considered &lsquo;classic&rsquo;, because they are more
+widely used, have been around for a longer time and generally are easier to implement.
+Immutable counterparts offer advantages from the concurrency and security perspectives.</p>
+
+<p>While some people use &lsquo;immutable&rsquo; and &lsquo;persistent&rsquo; terms interchangeably,
+they are not. <a href="http://en.wikipedia.org/wiki/Persistent_data_structure">Persistent data structure</a>
+(not to be confused with persistence on disk), is an immutable data structure that keeps and reuses large
+parts of itself while constructing an immutable copy. As an example, you can think of a persistent
+linked list that reuses its tail when appending a new node.
+If you&rsquo;re interested in functional, persistent data structures, have a
+look at <a href="http://www.amazon.com/Purely-Functional-Structures-Chris-Okasaki/dp/0521663504">Purely functional data structures</a>
+by Chris Okasaki.</p>
+
+<p>Let me also add that many modern programming languages that focus on
+concurrency have their data structures implemented in an immutable
+fashion: <a href="http://www.scala-lang.org/api/2.11.1/#scala.collection.immutable.package">Scala</a>
+offers both immutable and mutable collections. <a href="http://clojure.org/functional_programming#Functional%20Programming--Immutable%20Data%20Structures">Clojure</a> and  <a href="http://msdn.microsoft.com/en-us/library/dn385366(v=vs.110).aspx">C#</a> offer immutable collections as well.</p>
+
+<p>So let&rsquo;s go ahead and implement a classic, mutable stack in Ruby and
+then reimplement it as immutable.
+A <a href="http://en.wikipedia.org/wiki/Stack_(abstract_data_type">stack</a> is a data structure that follows this interface:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>self push(item)
+</span><span class='line'>self pop()
+</span><span class='line'>item peek()
+</span><span class='line'>bool empty?</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Mutable implementation that uses ruby array as a backing store:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MutableStack</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span>
+</span><span class='line'>    <span class="vi">@store</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@store</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">self</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">pop</span>
+</span><span class='line'>    <span class="vi">@store</span><span class="o">.</span><span class="n">pop</span>
+</span><span class='line'>    <span class="vi">@store</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">peek</span>
+</span><span class='line'>    <span class="vi">@store</span><span class="o">[-</span><span class="mi">1</span><span class="o">]</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">empty?</span>
+</span><span class='line'>    <span class="vi">@store</span><span class="o">.</span><span class="n">empty?</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You see that this implementation is a thin wrapper around array.
+Whenever you call <code>stack.push(item)</code>, you&rsquo;re modifying this array
+in-place. This implementation posesses all weaknesses that we discussed
+previously.</p>
+
+<p>Now to an immutable implementation:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ImmutableStack</span>
+</span><span class='line'>  <span class="k">class</span> <span class="nc">EmptyStack</span>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">empty?</span>
+</span><span class='line'>      <span class="kp">true</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span class='line'>      <span class="no">ImmutableStack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">self</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">pop</span>
+</span><span class='line'>      <span class="k">raise</span> <span class="s1">&#39;Cannot pop empty stack&#39;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nf">peek</span>
+</span><span class='line'>      <span class="k">raise</span> <span class="s1">&#39;Cannot peek empty stack&#39;</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">empty</span>
+</span><span class='line'>    <span class="no">EmptyStack</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">tail</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@head</span> <span class="o">=</span> <span class="n">head</span>
+</span><span class='line'>    <span class="vi">@tail</span> <span class="o">=</span> <span class="n">tail</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">peek</span>
+</span><span class='line'>    <span class="n">head</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+</span><span class='line'>    <span class="no">ImmutableStack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">self</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">pop</span>
+</span><span class='line'>    <span class="n">tail</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">empty?</span>
+</span><span class='line'>    <span class="kp">false</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Usage pattern:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="no">ImmutableStack</span><span class="o">.</span><span class="n">empty</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="mi">99</span><span class="p">)</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">peek</span> <span class="c1"># 100</span>
+</span><span class='line'><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">pop</span>
+</span><span class='line'><span class="nb">puts</span> <span class="n">s</span><span class="o">.</span><span class="n">peek</span> <span class="c1"># 99</span>
+</span><span class='line'><span class="n">s</span><span class="o">.</span><span class="n">peek</span> <span class="c1"># Cannot peek empty stack (RuntimeError)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You see that each destructive operation does not mutate the stack but
+rather returns a copy of itself with required modifications.
+What&rsquo;s more, it reuses a large portion of itself while doing so, thus
+making this stack a persistent data structure.</p>
+
+<p>Unfortunately, Ruby does not allow to directly create private
+constructors and users can potentially call</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ImmutableStack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="no">ImmutableStack</span><span class="o">.</span><span class="n">empty</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But I don&rsquo;t want to make this article too long and will omit this use
+case.</p>
+
+<p>If you want a good ruby library of immutable collections, I suggest
+using <a href="https://github.com/hamstergem/hamster">hamster</a>.</p>
+
+<h4>Immutable data structures and multithreading</h4>
+
+<p>When writing a multi-threaded applications, follow these rules:</p>
+
+<ol>
+<li>Try not to share data across threads.</li>
+<li>If you have to share your data across threds, make this data immutable.</li>
+<li>If you can&rsquo;t avoid sharing mutable data, synchronize access to that
+data with synchronization constructs, such as <a href="http://www.ruby-doc.org/core-2.1.1/Mutex.html">Mutex</a>.</li>
+</ol>
+
+
+<p>So with our two stack implementations it is safe to share an
+immutable version across multiple threads, because they will not be able to
+modify it in place. Whenever a thread makes a <code>push</code> or a <code>pop</code>, a
+new instance of the stack is created and returned so that the existing
+instance is never changed.</p>
+
+<h3>Conclusion</h3>
+
+<p>Now that you&rsquo;ve read the article, you might have got an impression that
+immutability is a silver bullet.  It is not.
+It is one of the possible ways to design software with its own strengths
+and weaknesses. Immutability let&rsquo;s you design your functions and data
+structures in a completely different way, gaining much and losing much too.
+We&rsquo;ve all been living in a world where the sequential computation was
+the de-facto standard.
+And probably in the past immutability was not worth it.
+For a single core computer, immutability has too much overhead.
+You must carefully control the state,
+pay close attention to reusing and copying in order to be efficient.
+In this case
+the performance impact that some of the immutable data structures incur can
+be too significant.</p>
+
+<p>But this world is changing and the sequential model is going away.
+We all have smartphones with 2 or 4 cores. Our smart watches will have 8
+cores in a couple of years, which means that concurrent is becoming new
+sequential. If we want to exploit the power of modern hardware, we need
+to embrace the concurrent way of doing things. This is where
+immutability advantages outweight its weak parts.
+I think that immutability is the way you should design your
+software now to be prepared for the concurrent future.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Introduction to full text search for Rails developers]]></title>
@@ -57,12 +823,12 @@ and it is possible to do so only by keeping it really simple.</em></p>
 <span class='line-number'>11</span>
 <span class='line-number'>12</span>
 <span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  personal  ruby -v
+</pre></td><td class='code'><pre><code class=''><span class='line'>personal  ruby -v
 </span><span class='line'>ruby 2.0.0p353 (2013-11-22 revision 43784) [x86_64-darwin13.0.0]
-</span><span class='line'>➜  personal  rails -v
+</span><span class='line'>personal  rails -v
 </span><span class='line'>Rails 4.0.2
-</span><span class='line'>➜  personal  rails new neibo
-</span><span class='line'>      create  
+</span><span class='line'>personal  rails new neibo
+</span><span class='line'>      create
 </span><span class='line'>      create  README.rdoc
 </span><span class='line'>      create  Rakefile
 </span><span class='line'>      create  config.ru
@@ -150,9 +916,9 @@ as we will not need them. We should also add the <code>pg</code> gem to talk to 
 <figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rails g migration create_people
-</span><span class='line'>      invoke  active_record
-</span><span class='line'>      create    db/migrate/20140222113048_create_people.rb</span></code></pre></td></tr></table></div></figure>
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rails g migration create_people
+</span><span class='line'>    invoke  active_record
+</span><span class='line'>    create    db/migrate/20140222113048_create_people.rb</span></code></pre></td></tr></table></div></figure>
 
 
 
@@ -172,7 +938,7 @@ as we will not need them. We should also add the <code>pg</code> gem to talk to 
 <span class='line-number'>13</span>
 <span class='line-number'>14</span>
 <span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># db/migrate/20140222113048_create_people.rb </span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># db/migrate/20140222113048_create_people.rb</span>
 </span><span class='line'><span class="k">class</span> <span class="nc">CreatePeople</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Migration</span>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">change</span>
 </span><span class='line'>    <span class="n">create_table</span> <span class="ss">:people</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
@@ -210,8 +976,8 @@ denies the browser geolocation permission.</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rake db:create
-</span><span class='line'>➜  neibo  rake db:migrate
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rake db:create
+</span><span class='line'> neibo  rake db:migrate
 </span><span class='line'>==  CreatePeople: migrating ===================================================
 </span><span class='line'>-- create_table(:people)
 </span><span class='line'>   -> 0.0080s
@@ -302,7 +1068,7 @@ denies the browser geolocation permission.</p>
 </span><span class='line'><span class="cp">&lt;%</span> <span class="k">else</span> <span class="cp">%&gt;</span><span class="x"></span>
 </span><span class='line'><span class="x">  &lt;h2&gt;Hello, guest&lt;/h2&gt;</span>
 </span><span class='line'><span class="x">  &lt;h3&gt;</span>
-</span><span class='line'><span class="x">    Fill your profile so that people could find you. </span>
+</span><span class='line'><span class="x">    Fill your profile so that people could find you.</span>
 </span><span class='line'><span class="x">    Allow browser to access your location if you want to be found by people near you.</span>
 </span><span class='line'><span class="x">  &lt;/h3&gt;</span>
 </span><span class='line'>
@@ -526,8 +1292,8 @@ I totally understand your confusion. Let&rsquo;s break this mess into pieces:</p
 
 <ol>
 <li>Solr &ndash; a Java server that runs as a separate service and communicates
-via XML over HTTP API. It is generally considered a robust and full-featured
-— yet hard to learn full-text search solution.
+via XML over HTTP API. It is generally considered a robust and full-featured</li>
+<li>yet hard to learn full-text search solution.
 The only way you can communicate directly with Solr from a Rails application
 is to send rather cryptic XML requests.</li>
 <li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around the
@@ -1540,7 +2306,7 @@ the appropriate scope value:</p>
 
 
 <p>So I now knew all my browser had, and I needed to produce the fingerprint itself.
-For that I wanted to use a fast, non-cryptographic hashing function, such as <a href="http://en.wikipedia.org/wiki/MurmurHash%E2%80%8E">murmur hashing</a>.</p>
+For that I wanted to use a fast, non-cryptographic hashing function, such as <a href="http://en.wikipedia.org/wiki/MurmurHash">murmur hashing</a>.</p>
 
 <p>Murmur hashing produces 32-bit integer as a result and works really well. <a href="http://programmers.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed">When compared to other popular hash functions, MurmurHash performed well in a random distribution of regular keys.</a></p>
 

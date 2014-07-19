@@ -4,7 +4,7 @@
   <title><![CDATA[Category: solr | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/solr/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-02-24T11:33:19+04:00</updated>
+  <updated>2014-07-19T22:17:49+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -61,13 +61,13 @@ and it is possible to do so only by keeping it really simple.</em></p>
 <span class='line-number'>15</span>
 <span class='line-number'>16</span>
 <span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  personal  ruby -v
+</pre></td><td class='code'><pre><code class=''><span class='line'>personal  ruby -v
 </span><span class='line'>ruby 2.0.0p353 (2013-11-22 revision 43784) [x86_64-darwin13.0.0]
-</span><span class='line'>➜  personal  rails -v
+</span><span class='line'>personal  rails -v
 </span><span class='line'>Rails 4.0.2
-</span><span class='line'>➜  personal  rails new neibo&lt;/p>
+</span><span class='line'>personal  rails new neibo&lt;/p>
 </span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>  create  
+</span><span class='line'>&lt;pre>&lt;code>  create
 </span><span class='line'>  create  README.rdoc
 </span><span class='line'>  create  Rakefile
 </span><span class='line'>  create  config.ru
@@ -176,10 +176,10 @@ as we will not need them. We should also add the <code>pg</code> gem to talk to 
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rails g migration create_people&lt;/p>
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rails g migration create_people&lt;/p>
 </span><span class='line'>
-</span><span class='line'>&lt;pre>&lt;code>  invoke  active_record
-</span><span class='line'>  create    db/migrate/20140222113048_create_people.rb
+</span><span class='line'>&lt;pre>&lt;code>invoke  active_record
+</span><span class='line'>create    db/migrate/20140222113048_create_people.rb
 </span><span class='line'>&lt;/code>&lt;/pre>
 </span><span class='line'>
 </span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
@@ -248,8 +248,8 @@ denies the browser geolocation permission.</p>
 <span class='line-number'>4</span>
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>➜  neibo  rake db:create
-</span><span class='line'>➜  neibo  rake db:migrate
+</pre></td><td class='code'><pre><code class=''><span class='line'>neibo  rake db:create
+</span><span class='line'> neibo  rake db:migrate
 </span><span class='line'>==  CreatePeople: migrating ===================================================
 </span><span class='line'>&mdash; create_table(:people)
 </span><span class='line'>   &ndash;> 0.0080s
@@ -349,7 +349,7 @@ denies the browser geolocation permission.</p>
 </span><span class='line'><span class="x">  &amp;lt;%= form_tag people_path, method: :get do </span><span class="err">%&gt;</span><span class="x">&lt;/p&gt;</span>
 </span><span class='line'>
 </span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;&amp;lt;div&amp;gt;</span>
-</span><span class='line'><span class="x">  &amp;lt;%= text_field_tag :search, params[:search], </span>
+</span><span class='line'><span class="x">  &amp;lt;%= text_field_tag :search, params[:search],</span>
 </span><span class='line'><span class="x">  placeholder: &#39;Search nearby people&#39;, type: :search, style: &#39;width: 400px&#39; %&amp;gt;</span>
 </span><span class='line'><span class="x">  &amp;lt;label&amp;gt;Search within mile radius:</span>
 </span><span class='line'><span class="x">    &amp;lt;%= select_tag :radius, options_for_select([10, 50, 100]) %&amp;gt;</span>
@@ -363,7 +363,7 @@ denies the browser geolocation permission.</p>
 </span><span class='line'><span class="x">  &lt;h2&gt;Hello, guest&lt;/h2&gt;</span>
 </span><span class='line'><span class="x">  &lt;h3&gt;&lt;/p&gt;</span>
 </span><span class='line'>
-</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Fill your profile so that people could find you. </span>
+</span><span class='line'><span class="x">&lt;pre&gt;&lt;code&gt;Fill your profile so that people could find you.</span>
 </span><span class='line'><span class="x">Allow browser to access your location if you want to be found by people near you.</span>
 </span><span class='line'><span class="x">&lt;/code&gt;&lt;/pre&gt;</span>
 </span><span class='line'>
@@ -654,8 +654,8 @@ I totally understand your confusion. Let&rsquo;s break this mess into pieces:</p
 
 <ol>
 <li>Solr &ndash; a Java server that runs as a separate service and communicates
-via XML over HTTP API. It is generally considered a robust and full-featured
-— yet hard to learn full-text search solution.
+via XML over HTTP API. It is generally considered a robust and full-featured</li>
+<li>yet hard to learn full-text search solution.
 The only way you can communicate directly with Solr from a Rails application
 is to send rather cryptic XML requests.</li>
 <li>Nobody wants to mess with raw XML over HTTP, so here enters RSolr &ndash; a wrapper around the
