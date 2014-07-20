@@ -4,7 +4,7 @@
   <title><![CDATA[Category: functional | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/functional/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-07-19T22:17:49+04:00</updated>
+  <updated>2014-07-20T08:28:07+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -26,19 +26,19 @@ on Ebay, but sadly never finished it.
 I then bought <a href="http://www.amazon.com/Scala-Impatient-Cay-S-Horstmann/dp/0321774094">Scala for the Impatient</a>,
 but this time had the persistence to finish the book.</p>
 
-<p>All these years functional programming seemed like a holy grail for me,
+<p>All these years functional programming seemed like a holy grail,
 but as a true holy grail, I was afraid it was meant to stay
-undiscovered to me.</p>
+undiscovered.</p>
 
 <p>All these years I paid my bills writing Ruby-on-Rails and JavaScript
-code and never made this functional leap. I never became a full-time
+code and never made the functional leap. I never became a full-time
 Haskell or Scala developer and probably will never become one.</p>
 
 <p>But you know what? It&rsquo;s possible to be slightly more functional with
-<em>usual</em> languages we&rsquo;re using every day. This article will try to demonstrate
-to you several concrete examples where functional programming is useful
+<em>normal</em> languages we&rsquo;re using every day. This article will try to demonstrate
+several concrete examples where functional programming is useful
 or elegant. I will show you the old way of doing things in Ruby and the
-new, more functional way of doing same thing in Ruby again.</p>
+new, more functional way of doing similar things in Ruby again.</p>
 
 <!--more-->
 
@@ -48,7 +48,7 @@ functional programming. It also assumes that you&rsquo;ve probably seen
 other examples of functional code before.</p>
 
 <p>I&rsquo;m going to split this article into several parts and each part will
-explain a specific example.</p>
+elaborate upon a specific example.</p>
 
 <h2>Part 1: Immutability</h2>
 
@@ -59,49 +59,48 @@ Quoting from wikipedia:</p>
 <blockquote><blockquote><p>an immutable object is an object whose state cannot be modified after it is created.
 This is in contrast to a mutable object, which can be modified after it is created.</p></blockquote></blockquote>
 
-<p>Very simple concept with far going consequences.</p>
+<p>A very simple concept with far reaching consequences.</p>
 
 <p>First let&rsquo;s define what &lsquo;whose state cannot be modified&rsquo; really means.
-At first you may think that such object is useless, how can we possibly
+At first you may think that such an object is useless. How can we possibly
 use an object if we cannot change it?
-Usually what happens is that an immutable object creates a copy of
-itself with desired modifications. The original object always stays
+Usually an immutable object creates a copy of
+itself with desired modifications. The original object remains
 unchanged. You will see the examples of it further in the article.</p>
 
 <h3>Immutability and functional programming</h3>
 
-<p>Now another foundational question: why does functional programming favor
-immutable values and data structures over mutable? Is <em>real</em> functional
+<p>Now, another foundational question: why does functional programming favor
+immutable values and data structures over mutable ones? Is <em>real</em> functional
 programming possible with mutable values?
 You probably know that functional programming is more than &lsquo;programming
 with functions&rsquo;. It also requires the functions to be <em>pure</em>.
-I&rsquo;m not a mathematician and probably my explanation of pure functions will
-not be scientifically correct, but you can think of them simply as functions that
-always accept an argument, always return the result and
-the computing of the result depends solely on the argument.
-In other words, a pure function cannot depend on some other data, called
-<em>state</em>, existing elsewhere, to influence how the result is computed.
+I&rsquo;m not a mathematician and  my explanation of pure functions may
+not be scientifically correct, but you can think of them simply as functions that:
+always accept an argument, always return a result and
+the computing of the result depends solely on the input.
+In other words, a pure function cannot depend on some other data,
+existing elsewhere, called <em>state</em>, to influence how the result is computed.
 The only thing that dictates how the result is computed is the
-function argument. Pure functions cannot change the external state
-either, which is called <em>creating side effects</em>.</p>
+function&rsquo;s argument. Pure functions cannot change the external state
+either. This is called <em>creating side effects</em>.</p>
 
-<p>Sometimes programmers call the external state as &lsquo;the world&rsquo; and refer
-to pure functions as functions that cannot depend on &lsquo;the world&rsquo; or
-&lsquo;read the world state&rsquo;, nor change the world while making its job.</p>
+<p>Sometimes programmers call the external state &ldquo;the world&rdquo; and refer
+to pure functions as functions that cannot depend on &ldquo;the world&rdquo; and
+read &ldquo;the world&rdquo; state, nor change &ldquo;the world&rdquo; while making its job.</p>
 
-<p>Why bother at all about the purity of functions? The reason for this is
-composability. When all your functions are pure, you can compose large
-programs from small functions. Knowing that a function is pure is knowing
-that it operates only inside itself, thus providing guarantees
-that it will not change the external state, i.e. will not make side effects.</p>
+<p>Why worry at all about the purity of functions? Composability.
+When your functions are pure, you can compose large
+programs from small functions. Knowing that a function is pure
+provides guarantees that it will not change the external state.</p>
 
 <p>Is it possible to write a real program using only pure functions?
 How can you talk to the database, write to files, charge
-credit cards and do all other stuff the real programs do? Functional
-applications are usually built using a pure core, where the bulk of
-the logic lives and a thin, impure shell, that provides access to the
-pure core from the outside world. This way you have a large part
-of the code that is easy to reason about, easy to test and understand.</p>
+credit cards and do everything else real programs do? Functional
+applications are usually built using a pure core (where the bulk of
+the logic lives) and a thin, impure shell (that provides access to the
+pure core from the outside world). This way you have a large part
+of the code that is easy to reason about, easy to test and easy to understand.</p>
 
 <p>Example of a pure function:</p>
 
@@ -128,16 +127,16 @@ arguments.</p>
 </span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>This function writes to the file system besides computing the result.
-In other words, this function changes the world by creating side
+<p>This function writes to the file system in addition to computing the result.
+In other words, this function changes &ldquo;the world&rdquo; by creating side
 effects.</p>
 
 <p>Using v2 of this function you hurt composability; you limit yourself in
-the ways you can use this function further in your program.</p>
+the ways you can use this function in other parts of your program.</p>
 
 <h4>Immutability and purity</h4>
 
-<p>Now let&rsquo;s look why function purity demands immutability on a concrete
+<p>Now let&rsquo;s look why function purity demands immutability with a concrete
 example. We all know that strings in ruby are <a href="http://stackoverflow.com/q/2608493/430254">mutable</a>.
 You can mutate the string with:</p>
 
@@ -186,8 +185,7 @@ Now let&rsquo;s use the string as a function argument:</p>
 
 <p>This method mutates the argument and returns it.
 On the surface, this looks OK, but we have just inadvertently created a
-side effect. Any external code that relied on this string will
-possibly break.</p>
+side effect. Any external code that relies on this string may break.</p>
 
 <p>Let&rsquo;s create an example of this:
 <div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -232,7 +230,7 @@ possibly break.</p>
 
 <p>You see now that in order to keep function pure we should never mutate
 its arguments, but create new objects and return them instead.
-Same function, but this time pure:</p>
+Same function, but this time implemented as pure:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -243,21 +241,20 @@ Same function, but this time pure:</p>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>Just a minor modification gives us many benefits:
-we&rsquo;re no longer modifying the world and only returning a new string with
+we&rsquo;re no longer modifying &ldquo;the world&rdquo; and only return a new string with
 the required modifications.</p>
 
-<p>How can we guarantee that functions do not mutate their arguments?
+<p>How can we guarantee that functions never mutate their arguments?
 By making the arguments immutable, of course!</p>
 
 <p>The key thing to take away here is that by making each object immutable,
-we can guarantee that functions will not create side effects and will
-always be pure.</p>
+we can guarantee that functions do not create side effects and remain pure.</p>
 
 <p>Hopefully, by now I have convinced you that immutable objects are useful.
-Now you probably understand that by limiting the &lsquo;reach&rsquo; of the function
-to only the local function scope you automatically decrease the number
+Now you probably understand that by limiting the &ldquo;reach&rdquo; of the function
+to only the local function&rsquo;s scope you automatically decrease the number
 of potential bugs and unpleasant surprises.
-However, you may still be unsure about the performance of the immutable objects,
+However, you may still be unsure about the performance of immutable objects,
 and think that it is wasteful to create a copy of an object each time
 it needs to be modified.
 The following part of the article will hopefully make everything clear.</p>
@@ -293,14 +290,14 @@ treated in a special way by languages.</p>
 
 <p>Why does a language usually divide objects into, well, objects and
 primitives? The reason is performance.
-Primitives are closer to computer hardware and creating an object each time a number
-is needed is slow.</p>
+Primitives are closer to computer hardware and creating an object for
+every number is slow.</p>
 
 <p>However, Ruby does not have true <a href="http://en.wikipedia.org/wiki/Primitive_data_type">primitives</a>,
-because <a href="https://www.ruby-lang.org/en/about/">in Ruby, everything is an object</a>.
+because in Ruby, <a href="https://www.ruby-lang.org/en/about/">everything is an object</a>.
 You can call methods and properties on numbers and extend them with
 user-defined methods. I will still call them primitives, because it&rsquo;s
-what they are at least on a conceptual level.</p>
+what they are on a conceptual level.</p>
 
 <p>On one hand, primitives behave like immutable objects
 in Ruby:</p>
@@ -330,7 +327,7 @@ in Ruby:</p>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>This snippet demonstrates that you cannot modify a number. In real life
-this doesn&rsquo;t make sense either, if you have number 4 it&rsquo;s number 4,
+this doesn&rsquo;t make sense either, if you have the number 4 it&rsquo;s the number 4 &mdash;
 eternal and beautiful. If you add 1 to it, you get completely different
 number 5, the old 4 stays the same.</p>
 
@@ -348,7 +345,7 @@ number 5, the old 4 stays the same.</p>
 </span><span class='line'><span class="kp">false</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">two</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>Integers and floats are frozen by default, while booleans are not.</p>
+<p>Integers and floats are <em>frozen</em> by default, while booleans are not.</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -358,16 +355,16 @@ number 5, the old 4 stays the same.</p>
 </span><span class='line'><span class="kp">true</span><span class="o">.</span><span class="n">frozen?</span> <span class="c1"># false</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>So while some primitives are not frozen, ruby does not provide mutation
+<p>So while some primitives are not frozen, Ruby does not provide mutation
 methods for them and they <em>usually</em> can be treated as immutable objects.
-You should remember that this easily overriden (as everything in Ruby)
+You should remember that this is easily overridden (as is everything in Ruby)
 and can cause potential problems.</p>
 
 <h3>Strings</h3>
 
 <p>Before diving into the specifics of Ruby strings, let&rsquo;s
-talk about string immutability in general. In most languages strings are
-immutable, that is string concatenation or upcasing produces a new
+talk about string mutability in general. In most languages strings are
+immutable: string concatenation or upcasing produces a new
 string rather than modifying it in-place.</p>
 
 <p>Why do language designers usually make their string implementations
@@ -385,10 +382,10 @@ without any locking or synchronization. Immutable data structures
 don&rsquo;t need synchronisation at all when used in multithreaded
 environments.</p>
 
-<p>Modern programming languages are designed from the ground to be
+<p>Modern programming languages are designed from the ground up to be
 concurrent (go, rust), and having a single string instance to be
 shared across multiple threads helps to save a lot of memory and avoid
-the necessity of making defensive copying when passing immutable strings
+the necessity of defensive copying when passing immutable strings
 around.</p>
 
 <h4>Hash table keys</h4>
@@ -397,27 +394,27 @@ around.</p>
 tables. This usage demands for strings to return the same hash code
 after the key and value were added to the hash table. With mutable
 strings a hash table would need to copy the string in order to guarantee
-the hash code staying the same. With immutable strings it is not needed.</p>
+the hash code staying the same. With immutable strings this is not needed.</p>
 
 <h4>Security</h4>
 
 <p>As I&rsquo;ve mentioned, strings are used very frequently in any program.
 This entails a special treatment in terms of security.
-Strings are used when comparing user names and passwords, storing
-credit card numbers and much more. Having strings immutable guarantees
-that a bad party will not be able to tamper with the string after it was
-created and used in a security critical context.</p>
+Strings are used when comparing user-names and passwords, storing
+credit card numbers and much more. Immutable strings guarantee
+that a malicious party is unable to tamper with the string after
+creation.</p>
 
-<p>There is a performance downside of immutable strings.
+<p>However, there is a performance downside of immutable strings.
 Mutable strings allow fast indexing and modifying  in-place,
-as if it were a regular array.</p>
+as with regular arrays.</p>
 
 <h4>String immutability and Ruby</h4>
 
-<p>As with <em>primitives</em>, ruby has no real immutable strings. To be precise,
-Ruby strings are mutable with an immutable facade. That is, most
+<p>As with <em>primitives</em>, Ruby has no real immutable strings. To be precise,
+Ruby strings are mutable behind an immutable facade. That is, most
 operations on strings return new strings, while some of them still allow
-to modify the string in-place.</p>
+in-place modification.</p>
 
 <p>Consider these examples:</p>
 
@@ -462,12 +459,12 @@ to modify the string in-place.</p>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>As you can see mutable operations do not create new strings but rather
-modify existing in-place.</p>
+modify existing strings in-place.</p>
 
 <h5>Strings as hash keys</h5>
 
 <p>Earlier I mentioned that mutable strings do not make good hash keys.
-Let me prove the point:</p>
+Let me prove this:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -481,13 +478,13 @@ Let me prove the point:</p>
 </span><span class='line'><span class="n">h</span><span class="o">[</span><span class="n">bad_key</span><span class="o">]</span> <span class="c1"># nil</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>You see that after I modified a string we can no longer find the value,
-because key&rsquo;s hashcode has changed! And since it&rsquo;s so easy to mutate the
-Ruby string, you can end up with a completely broken hash.
-This is the reason it is not recommended to use strings as hash keys.</p>
+<p>After I modified the string key we can no longer find the value,
+because the key&rsquo;s hashcode has changed! Since it&rsquo;s so easy to mutate the
+Ruby string, you can end up with a useless hash.
+This is why it is not recommended to use mutable strings as hash keys.</p>
 
 <p>How can we remedy it?
-First option is to freeze the string:</p>
+The first option is to freeze the string:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -505,7 +502,7 @@ First option is to freeze the string:</p>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>Second, and better option is to use <a href="http://www.ruby-doc.org/core-2.1.2/Symbol.html">symbols</a>,
+<p>A second and better option is to use <a href="http://www.ruby-doc.org/core-2.1.2/Symbol.html">symbols</a>,
 which are immutable versions of strings often used as identifiers.</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -533,11 +530,10 @@ which are immutable versions of strings often used as identifiers.</p>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
 <p>You might say at this point, &ldquo;Why can&rsquo;t I just use symbols instead of
-strings, because they&rsquo;re immutable equivalents?&rdquo;. The short answer is you may not be
+strings if they&rsquo;re immutable equivalents?&rdquo;. The short answer is you may not be
 able to, depending on your use case.
-The reason is that symbols don&rsquo;t have the immutable equivalents of
-string&rsquo;s many methods, so it&rsquo;s not really convenient to use symbols as an immutable
-drop-in replacement.
+One reason is that symbols don&rsquo;t have immutable equivalents of
+string&rsquo;s many methods, so it&rsquo;s inconvenient to use symbols as an immutable replacement.
 Just compare the number of methods in <a href="http://www.ruby-doc.org/core-2.1.2/Symbol.html">Symbol</a>
 and <a href="http://www.ruby-doc.org/core-2.1.2/String.html">String</a> to see the
 difference.</p>
@@ -551,20 +547,20 @@ require using data structures in order to be efficient.</p>
 <p>What is a data structure?</p>
 
 <p>It&rsquo;s a complex question, but you can think of
-it as a way to organize other, simpler data structures in a convenient of efficient
+it as a way to organize other, simpler data structures in a convenient or efficient
 way. Some data structures are designed for ease of use, while others are
-built solely with efficiency considerations in mind.</p>
+built solely with efficiency in mind.</p>
 
-<p>We all know lists, queues, hash tables, arrays, trees and many, many
-more. These data structres often have both mutable and immutable implementations.</p>
+<p>We all know about lists, queues, hash tables, arrays, trees and many, many
+more. These data structres can have both mutable and immutable implementations.</p>
 
 <p>Mutable implementations are considered &lsquo;classic&rsquo;, because they are more
-widely used, have been around for a longer time and generally are easier to implement.
-Immutable counterparts offer advantages from the concurrency and security perspectives.</p>
+widely used, have been around for longer and generally are easier to implement.
+Immutable counterparts offer advantages in concurrency and security.</p>
 
-<p>While some people use &lsquo;immutable&rsquo; and &lsquo;persistent&rsquo; terms interchangeably,
-they are not. <a href="http://en.wikipedia.org/wiki/Persistent_data_structure">Persistent data structure</a>
-(not to be confused with persistence on disk), is an immutable data structure that keeps and reuses large
+<p>While some people use &lsquo;immutable&rsquo; and &lsquo;persistent&rsquo; interchangeably,
+they are not the same. <a href="http://en.wikipedia.org/wiki/Persistent_data_structure">Persistent data structure</a>
+is immutable and keeps and reuses large
 parts of itself while constructing an immutable copy. As an example, you can think of a persistent
 linked list that reuses its tail when appending a new node.
 If you&rsquo;re interested in functional, persistent data structures, have a
@@ -576,7 +572,7 @@ concurrency have their data structures implemented in an immutable
 fashion: <a href="http://www.scala-lang.org/api/2.11.1/#scala.collection.immutable.package">Scala</a>
 offers both immutable and mutable collections. <a href="http://clojure.org/functional_programming#Functional%20Programming--Immutable%20Data%20Structures">Clojure</a> and  <a href="http://msdn.microsoft.com/en-us/library/dn385366(v=vs.110).aspx">C#</a> offer immutable collections as well.</p>
 
-<p>So let&rsquo;s go ahead and implement a classic, mutable stack in Ruby and
+<p>Let&rsquo;s go ahead and implement a classic, mutable stack in Ruby and
 then reimplement it as immutable.
 A <a href="http://en.wikipedia.org/wiki/Stack_(abstract_data_type">stack</a> is a data structure that follows this interface:</p>
 
@@ -587,7 +583,7 @@ item peek()
 bool empty?
 </code></p>
 
-<p>Mutable implementation that uses ruby array as a backing store:</p>
+<p>Here is mutable implementation that uses a Ruby array as a backing store:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -667,9 +663,9 @@ bool empty?
 </span><span class='line'><span class="sr">end</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>You see that this implementation is a thin wrapper around array.
+<p>This implementation is basically a thin wrapper around array.
 Whenever you call <code>stack.push(item)</code>, you&rsquo;re modifying this array
-in-place. This implementation posesses all weaknesses that we discussed
+in-place. This implementation possesses all the weaknesses that we discussed
 previously.</p>
 
 <p>Now to an immutable implementation:</p>
@@ -836,12 +832,12 @@ previously.</p>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>You see that each destructive operation does not mutate the stack but
-rather returns a copy of itself with required modifications.
+<p>Each destructive operation does not mutate the stack but
+rather returns a copy of itself with the required modifications.
 What&rsquo;s more, it reuses a large portion of itself while doing so, thus
 making this stack a persistent data structure.</p>
 
-<p>Unfortunately, Ruby does not allow to directly create private
+<p>Unfortunately, Ruby does not allow you to directly create private
 constructors and users can potentially call</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -856,9 +852,6 @@ constructors and users can potentially call</p>
 </span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span>
 </span></code></pre></td></tr></table></div></figure></notextile></div></p>
 
-<p>But I don&rsquo;t want to make this article too long and will omit this use
-case.</p>
-
 <p>If you want a good ruby library of immutable collections, I suggest
 using <a href="https://github.com/hamstergem/hamster">hamster</a>.</p>
 
@@ -867,14 +860,14 @@ using <a href="https://github.com/hamstergem/hamster">hamster</a>.</p>
 <p>When writing a multi-threaded applications, follow these rules:</p>
 
 <ol>
-<li>Try not to share data across threads.</li>
-<li>If you have to share your data across threds, make this data immutable.</li>
+<li>Avoid sharing data across threads.</li>
+<li>If you have to share your data across threads, make this data immutable.</li>
 <li>If you can&rsquo;t avoid sharing mutable data, synchronize access to that
 data with synchronization constructs, such as <a href="http://www.ruby-doc.org/core-2.1.1/Mutex.html">Mutex</a>.</li>
 </ol>
 
 
-<p>So with our two stack implementations it is safe to share an
+<p>In our two stack implementations it is safe to share an
 immutable version across multiple threads, because they will not be able to
 modify it in place. Whenever a thread makes a <code>push</code> or a <code>pop</code>, a
 new instance of the stack is created and returned so that the existing
@@ -882,29 +875,28 @@ instance is never changed.</p>
 
 <h3>Conclusion</h3>
 
-<p>Now that you&rsquo;ve read the article, you might have got an impression that
+<p>Now that you&rsquo;ve read the article, you might have the impression that
 immutability is a silver bullet.  It is not.
-It is one of the possible ways to design software with its own strengths
+It is only one possible way to design software and has its own strengths
 and weaknesses. Immutability let&rsquo;s you design your functions and data
-structures in a completely different way, gaining much and losing much too.
+structures in a new way, gaining much and losing much too.
 We&rsquo;ve all been living in a world where the sequential computation was
 the de-facto standard.
-And probably in the past immutability was not worth it.
+In the past immutability was not worth it.
 For a single core computer, immutability has too much overhead.
-You must carefully control the state,
+You must carefully control the state and
 pay close attention to reusing and copying in order to be efficient.
-In this case
-the performance impact that some of the immutable data structures incur can
+The performance impact that some of the immutable data structures incur can
 be too significant.</p>
 
-<p>But this world is changing and the sequential model is going away.
+<p>But the world is changing and the sequential model is disappearing.
 We all have smartphones with 2 or 4 cores. Our smart watches will have 8
-cores in a couple of years, which means that concurrent is becoming new
-sequential. If we want to exploit the power of modern hardware, we need
+cores in a couple of years, which means that concurrent will become
+the new sequential. If we want to exploit the power of modern hardware, we need
 to embrace the concurrent way of doing things. This is where
-immutability advantages outweight its weak parts.
+immutability advantages outweigh the bad parts.
 I think that immutability is the way you should design your
-software now to be prepared for the concurrent future.</p>
+software now in order to be prepared for the concurrent future.</p>
 ]]></content>
   </entry>
   
