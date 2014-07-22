@@ -664,7 +664,7 @@ A <a href="http://en.wikipedia.org/wiki/Stack_(abstract_data_type">stack</a> is 
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">pop</span>
 </span><span class='line'>    <span class="vi">@store</span><span class="o">.</span><span class="n">pop</span>
-</span><span class='line'>    <span class="vi">@store</span>
+</span><span class='line'>    <span class="nb">self</span>
 </span><span class='line'>  <span class="k">end</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">peek</span>
@@ -729,6 +729,8 @@ previously.</p>
 <span class='line-number'>42</span>
 <span class='line-number'>43</span>
 <span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ImmutableStack</span>
 </span><span class='line'>  <span class="k">class</span> <span class="nc">EmptyStack</span>
 </span><span class='line'>    <span class="k">def</span> <span class="nf">empty?</span>
@@ -756,6 +758,8 @@ previously.</p>
 </span><span class='line'>    <span class="vi">@head</span> <span class="o">=</span> <span class="n">head</span>
 </span><span class='line'>    <span class="vi">@tail</span> <span class="o">=</span> <span class="n">tail</span>
 </span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:head</span><span class="p">,</span> <span class="ss">:tail</span>
 </span><span class='line'>
 </span><span class='line'>  <span class="k">def</span> <span class="nf">peek</span>
 </span><span class='line'>    <span class="n">head</span>
