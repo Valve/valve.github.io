@@ -4,7 +4,7 @@
   <title><![CDATA[Category: language | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/language/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-07-20T08:28:07+04:00</updated>
+  <updated>2014-07-22T11:13:06+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -14,7 +14,7 @@
 
   
   <entry>
-    <title type="html"><![CDATA[from object to functional — immutability]]></title>
+    <title type="html"><![CDATA[immutability in Ruby]]></title>
     <link href="http://valve.github.io/blog/2014/07/04/from-object-to-functional-immutability/"/>
     <updated>2014-07-04T15:30:00+04:00</updated>
     <id>http://valve.github.io/blog/2014/07/04/from-object-to-functional-immutability</id>
