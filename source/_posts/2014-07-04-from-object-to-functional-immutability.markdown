@@ -1,9 +1,9 @@
 ---
 layout: post
-title: "from object to functional — immutability"
+title: "immutability in Ruby"
 date: 2014-07-04 15:30
 comments: true
-categories: [functional, object, programming, language, ruby]
+categories: [language, ruby, immutability]
 ---
 
 Like many other developers, I've been intrigued with functional
