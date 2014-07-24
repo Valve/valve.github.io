@@ -458,7 +458,7 @@ class MutableStack
 
   def pop
     @store.pop
-    @store
+    self
   end
 
   def peek
@@ -507,6 +507,8 @@ class ImmutableStack
     @head = head
     @tail = tail
   end
+
+  attr_reader :head, :tail
 
   def peek
     head

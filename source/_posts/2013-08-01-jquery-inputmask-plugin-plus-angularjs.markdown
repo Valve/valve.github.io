@@ -3,7 +3,7 @@ layout: post
 title: "jQuery inputmask plugin + AngularJS"
 date: 2013-08-01 13:09
 comments: true
-categories: [jquery, angularjs]
+categories: [jquery, angularjs, javascript]
 ---
 
 The plugin I was going to use was [jquery inputmask](https://github.com/RobinHerbots/jquery.inputmask) by Robin Herbots.
@@ -96,8 +96,8 @@ ngApp.directive('inputMask', function(){
   return {
     restrict: 'A',
     link: function(scope, el, attrs){
-      el.inputmask(scope.$eval(attrs.inputMask));
-      el.on('change', function(){
+      $(el).inputmask(scope.$eval(attrs.inputMask));
+      $(el).on('change', function(){
         scope.$eval(attrs.ngModel + "='" + el.val() + "'");
         // or scope[attrs.ngModel] = el.val() if your expression doesn't contain dot.
       });
