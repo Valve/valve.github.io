@@ -9,9 +9,9 @@
   <meta name="author" content="valve">
 
   
-  <meta name="description" content="Like many other developers, I&rsquo;ve been intrigued with functional
-programming for a long while. I remember myself reading articles
-promising &hellip;">
+  <meta name="description" content="This post is intended for people coming from high level languages, such as
+Ruby or JavaScript and who may be surprised with the complexity of
+the &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,64 @@ promising &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/08/25/json-serialization-in-rust-part-1/">JSON Serialization in Rust, Part 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-25T10:08:00+04:00" pubdate data-updated="true">Aug 25<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This post is intended for people coming from high level languages, such as
+Ruby or JavaScript and who may be surprised with the complexity of
+the JSON serialization infrastructure in Rust.</p>
+
+<p>This is the first part of the 2 part post that deals with encoding Rust
+values into JSON. Second part will deal with converting JSON strings
+back into Rust values.</p>
+
+<h2>Overview</h2>
+
+<p>JSON serialization lives in the <a href="http://doc.rust-lang.org/serialize/index.html">serialize</a> crate.
+It contains <a href="http://doc.rust-lang.org/serialize/json/">json</a> module where low-level implementation
+details live and two traits which we are interested in:
+<a href="http://doc.rust-lang.org/serialize/trait.Encodable.html">Encodable</a> and
+<a href="http://doc.rust-lang.org/serialize/trait.Encoder.html">Encoder</a>.</p>
+
+<p>Please note that hex and base64 modules are not relevant to JSON
+serialization, so we should not pay attention to them.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/08/25/json-serialization-in-rust-part-1/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -470,6 +528,10 @@ You might try to set them in mailer:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/25/json-serialization-in-rust-part-1/">JSON Serialization in Rust, Part 1</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/07/04/from-object-to-functional-immutability/">Immutability in Ruby</a>
       </li>
     
@@ -483,10 +545,6 @@ You might try to set them in mailer:</p>
     
       <li class="post">
         <a href="/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/">jQuery Inputmask Plugin + AngularJS</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/07/14/anonymous-browser-fingerprinting/">Anonymous Browser Fingerprinting</a>
       </li>
     
   </ul>

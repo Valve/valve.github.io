@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-07-24T14:35:31+04:00</updated>
+  <updated>2014-08-25T17:08:49+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,463 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[JSON serialization in Rust, part 1]]></title>
+    <link href="http://valve.github.io/blog/2014/08/25/json-serialization-in-rust-part-1/"/>
+    <updated>2014-08-25T10:08:00+04:00</updated>
+    <id>http://valve.github.io/blog/2014/08/25/json-serialization-in-rust-part-1</id>
+    <content type="html"><![CDATA[<p>This post is intended for people coming from high level languages, such as
+Ruby or JavaScript and who may be surprised with the complexity of
+the JSON serialization infrastructure in Rust.</p>
+
+<p>This is the first part of the 2 part post that deals with encoding Rust
+values into JSON. Second part will deal with converting JSON strings
+back into Rust values.</p>
+
+<h2>Overview</h2>
+
+<p>JSON serialization lives in the <a href="http://doc.rust-lang.org/serialize/index.html">serialize</a> crate.
+It contains <a href="http://doc.rust-lang.org/serialize/json/">json</a> module where low-level implementation
+details live and two traits which we are interested in:
+<a href="http://doc.rust-lang.org/serialize/trait.Encodable.html">Encodable</a> and
+<a href="http://doc.rust-lang.org/serialize/trait.Encoder.html">Encoder</a>.</p>
+
+<p>Please note that hex and base64 modules are not relevant to JSON
+serialization, so we should not pay attention to them.</p>
+
+<!--more -->
+
+
+<h2>Serialization</h2>
+
+<p>In order for a type to be JSON serializable, it must implement
+<a href="http://doc.rust-lang.org/serialize/trait.Encodable.html">Encodable</a>
+trait. Almost all built-in types already implement it, so you can serialize
+them as easily as:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="n">json</span><span class="p">;</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">numeric</span> <span class="o">=</span> <span class="m">3.14</span><span class="k">f64</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;Hello, world&quot;</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numeric</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">str</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// 3.14</span>
+</span><span class='line'><span class="c1">// &quot;Hello, world&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/lrjNyD">playpen</a></p>
+
+<h3>Option</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">// assuming inside main and json in scope</span>
+</span><span class='line'><span class="k">let</span> <span class="n">opt</span> <span class="o">=</span> <span class="n">Some</span><span class="p">(</span><span class="m">3.14</span><span class="p">)</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">opt</span><span class="p">));</span>
+</span><span class='line'><span class="k">let</span> <span class="n">opt2</span><span class="o">:</span> <span class="n">Option</span><span class="o">&lt;</span><span class="k">f64</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">None</span><span class="p">;</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">opt2</span><span class="p">));</span>
+</span><span class='line'><span class="c1">// 3.14</span>
+</span><span class='line'><span class="c1">// null</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/uSciLe">playpen</a></p>
+
+<h3>Vector</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">vec</span> <span class="o">=</span> <span class="n">vec</span><span class="o">!</span><span class="p">(</span><span class="m">1939</span><span class="k">i</span><span class="p">,</span> <span class="m">1945</span><span class="p">);</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vec</span><span class="p">));</span>
+</span><span class='line'><span class="c1">// [1939,1945]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/9e5L5L">playpen</a></p>
+
+<h3>HashMap</h3>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="k">mut</span> <span class="n">map</span> <span class="o">=</span> <span class="n">HashMap</span><span class="o">::</span><span class="n">new</span><span class="p">();</span>
+</span><span class='line'><span class="n">map</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&quot;pi&quot;</span><span class="p">,</span> <span class="m">3.14</span><span class="k">f64</span><span class="p">);</span>
+</span><span class='line'><span class="n">map</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="s">&quot;e&quot;</span><span class="p">,</span> <span class="m">2.71</span><span class="p">);</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">map</span><span class="p">));</span>
+</span><span class='line'><span class="c1">// {&quot;e&quot;:2.71,&quot;pi&quot;:3.14}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/PZJOxY">playpen</a></p>
+
+<h3>Array</h3>
+
+<p>Currently Rust cannot automatically serialize fixed sized arrays to JSON.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="m">1</span><span class="k">i</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">];</span>
+</span><span class='line'><span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numbers</span><span class="p">);</span>
+</span><span class='line'><span class="c1">// failed to find an implementation of trait </span>
+</span><span class='line'><span class="c1">// serialize::serialize::Encodable&lt;serialize::json::Encoder&lt;&#39;_&gt;,std::io::IoError&gt; for [int, .. 3]</span>
+</span><span class='line'><span class="c1">// json::encode(&amp;numbers);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Array&rsquo;s type signature includes its length, but Rust can&rsquo;t be generic with array&rsquo;s
+length. So in order to serialize an array into JSON, we&rsquo;ll need to use
+custom serialization, which I&rsquo;ll explain further.</p>
+
+<h3>Structs</h3>
+
+<p>It&rsquo;s possible to have Rust automatically implement JSON serialization
+for your structs. You&rsquo;ll need to adorn the struct with
+<code>deriving(Encodable)</code> attribute.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">,</span> <span class="n">Encodable</span><span class="p">};</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="p">{</span><span class="n">name</span><span class="o">:</span> <span class="s">&quot;John Doe&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span> <span class="n">age</span><span class="o">:</span> <span class="m">33</span><span class="p">};</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">person</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="cp">#[deriving(Encodable)]</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">age</span><span class="o">:</span> <span class="k">int</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// {&quot;name&quot;:&quot;John Doe&quot;,&quot;age&quot;:33}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/8p8V31">playpen</a></p>
+
+<h3>Custom serialization</h3>
+
+<p>You will inevitably come to the point when Rust&rsquo;s supplied serialization
+will not work for you. Luckily we have full control over the serialization
+process. In order to serialize your type the way you want it, you will
+need to implement the <code>Encodable</code> trait. Let&rsquo;s continue with our <code>Person</code>
+struct example and change it to include a summary field.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">,</span> <span class="n">Encodable</span><span class="p">,</span> <span class="n">Encoder</span><span class="p">};</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="p">{</span><span class="n">name</span><span class="o">:</span> <span class="s">&quot;John Doe&quot;</span><span class="p">.</span><span class="n">to_string</span><span class="p">(),</span> <span class="n">age</span><span class="o">:</span> <span class="m">33</span><span class="p">,};</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span> <span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">person</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'>  <span class="n">age</span><span class="o">:</span> <span class="k">int</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">impl</span> <span class="o">&lt;</span><span class="n">S</span><span class="o">:</span> <span class="n">Encoder</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Encodable</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">fn</span> <span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">self</span><span class="p">,</span> <span class="n">encoder</span><span class="o">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="n">S</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="p">(),</span> <span class="n">E</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">match</span> <span class="o">*</span><span class="n">self</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">Person</span><span class="p">{</span><span class="n">name</span><span class="o">:</span> <span class="n">ref</span> <span class="n">p_name</span><span class="p">,</span> <span class="n">age</span><span class="o">:</span> <span class="n">ref</span> <span class="n">p_age</span><span class="p">}</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">encoder</span><span class="p">.</span><span class="n">emit_struct</span><span class="p">(</span><span class="s">&quot;Person&quot;</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>          <span class="n">try</span><span class="o">!</span><span class="p">(</span><span class="n">encoder</span><span class="p">.</span><span class="n">emit_struct_field</span><span class="p">(</span> <span class="s">&quot;age&quot;</span><span class="p">,</span> <span class="m">0</span><span class="k">u</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="n">p_age</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoder</span><span class="p">)));</span>
+</span><span class='line'>          <span class="n">try</span><span class="o">!</span><span class="p">(</span><span class="n">encoder</span><span class="p">.</span><span class="n">emit_struct_field</span><span class="p">(</span> <span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="m">1</span><span class="k">u</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="n">p_name</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoder</span><span class="p">)));</span>
+</span><span class='line'>          <span class="n">try</span><span class="o">!</span><span class="p">(</span><span class="n">encoder</span><span class="p">.</span><span class="n">emit_struct_field</span><span class="p">(</span> <span class="s">&quot;summary&quot;</span><span class="p">,</span> <span class="m">2</span><span class="k">u</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>            <span class="p">(</span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Nice person named {}, {} years of age&quot;</span><span class="p">,</span> <span class="n">p_name</span><span class="p">,</span> <span class="n">p_age</span><span class="p">)).</span><span class="n">encode</span><span class="p">(</span><span class="n">encoder</span><span class="p">)</span>
+</span><span class='line'>          <span class="p">}));</span>
+</span><span class='line'>          <span class="n">Ok</span><span class="p">(())</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// {&quot;age&quot;:33,&quot;name&quot;:&quot;John Doe&quot;,&quot;summary&quot;:&quot;Nice person named John Doe, 33 years of age&quot;}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/s1rsXL">playpen</a></p>
+
+<p>Let us break down this code line by line to understand what&rsquo;s going on.</p>
+
+<p><code>Line 2:</code> We need to bring both <code>Encodable</code> and <code>Encoder</code> traits into
+scope. <code>Encodable</code> trait is for the struct to implement, to conform to
+the JSON serialization interface, while the
+<code>Encoder</code> is the low level workhorse of serialization, which transforms
+primitive values into JSON bits and combines them all together.</p>
+
+<p><code>Line 8:</code> We no longer need to use the <code>#[deriving(Encodable)]</code>
+attribute, because we&rsquo;re implementing the <code>Encodable</code> trait ourselves.</p>
+
+<p><code>Line 13:</code> We implement <code>Encodable</code> trait for the <code>Person</code> struct.
+<code>Encodable</code> full type signature is <code>Encodable&lt;S, E&gt;</code> where
+<code>S</code> should be an instance of <code>Encoder&lt;E&gt;</code>.
+<code>E</code> is a type parameter for <a href="http://doc.rust-lang.org/std/result/type.Result.html">Result&lt;T, E></a>,
+which our implementation returns.</p>
+
+<p><code>Line 14:</code> In order to implement the <code>Encodable</code> trait, we need to write
+the <code>encode</code> method, which accepts a single <code>S</code> argument. Remember, that
+<code>S</code> is an instance of <code>Encoder</code>, which is a low level JSON emitter.</p>
+
+<p><code>Lines 15-16:</code> We&rsquo;re destructuring (decomposing) the struct to access
+its fields. To do that we use pattern matching and assign the person
+fields to <code>p_name</code> and <code>p_age</code> variables.</p>
+
+<p><code>Line 17:</code> This is where JSON writing begins. We call <code>emit_struct</code> on
+our encoder and pass it 3 arguments: the name of the struct, current
+index and an anonymous function(aka lambda). The name of the struct
+<a href="https://github.com/rust-lang/rust/blob/0b3e43d2a47ecf4908a912c1144942e5216703ea/src/libserialize/json.rs#L500">is not used</a>; current index
+<a href="https://github.com/rust-lang/rust/blob/0b3e43d2a47ecf4908a912c1144942e5216703ea/src/libserialize/json.rs#L501">is not used too</a>.
+What is important is the anonymous function that we&rsquo;re passing as the
+3rd argument.
+The <code>emit_struct</code> method simply writes <code>{</code>, calls the lambda and then
+writes closing <code>}</code>. Why are the 1st and the 2nd arguments not used?
+I think they are there to conform to the uniform style of encoder&rsquo;s <code>emit_*</code> methods,
+but they don&rsquo;t make any sense when writing a JSON object.</p>
+
+<p><code>Lines 18-22:</code> This is where the body of the JSON object is written.
+Each field is written with <code>emit_struct_field</code> method that accepts same
+3 arguments: name, index and lambda. Name is how you want your object
+field to be named, index is to correctly insert comma after each field
+and the lambda&rsquo;s job is to return correctly escaped JSON representation of
+the struct&rsquo;s field value. Since the built-in types already implement the
+<code>Encodable</code> trait, we can safely call <code>encode</code> on integers and strings
+to encode their values into JSON.</p>
+
+<p><code>Line 23:</code> To indicate the successful JSON encoding, we return unit
+wrapped in Ok enum value of the Result.</p>
+
+<p><code>Line 24:</code> The line where the closing <code>}</code> of the object is written,
+because lambda finishes here.</p>
+
+<h4>Serializing fixed length arrays</h4>
+
+<p>Now armed with the knowledge to write our own implementation of
+<code>Encodable</code>, we can convert an array into JSON.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">,</span> <span class="n">Encodable</span><span class="p">,</span> <span class="n">Encoder</span><span class="p">};</span>
+</span><span class='line'><span class="n">static</span> <span class="n">BUFFER_SIZE</span><span class="o">:</span> <span class="k">uint</span> <span class="o">=</span> <span class="m">4</span><span class="p">;</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">Buffer</span><span class="p">([</span><span class="m">42</span><span class="k">i</span><span class="p">,</span> <span class="m">43</span><span class="p">,</span> <span class="m">44</span><span class="p">,</span> <span class="m">45</span><span class="p">]);</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">));</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">struct</span> <span class="n">Buffer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">([</span><span class="n">T</span><span class="p">,..</span><span class="n">BUFFER_SIZE</span><span class="p">]);</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="k">impl</span> <span class="o">&lt;</span><span class="n">S</span><span class="o">:</span> <span class="n">Encoder</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">T</span><span class="o">:</span> <span class="n">Encodable</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span><span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Encodable</span><span class="o">&lt;</span><span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Buffer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">{</span>
+</span><span class='line'>  <span class="k">fn</span> <span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">self</span><span class="p">,</span> <span class="n">encoder</span><span class="o">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="n">S</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="o">&lt;</span><span class="p">(),</span> <span class="n">E</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">match</span> <span class="o">*</span><span class="n">self</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">Buffer</span><span class="p">(</span><span class="n">ref</span> <span class="n">data</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="k">let</span> <span class="k">mut</span> <span class="n">counter</span> <span class="o">=</span> <span class="m">0</span><span class="k">u</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">encoder</span><span class="p">.</span><span class="n">emit_seq</span><span class="p">(</span><span class="n">BUFFER_SIZE</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>          <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">data</span><span class="p">.</span><span class="n">iter</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">try</span><span class="o">!</span><span class="p">(</span><span class="n">encoder</span><span class="p">.</span><span class="n">emit_seq_elt</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="o">|</span><span class="n">encoder</span><span class="o">|</span> <span class="n">i</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoder</span><span class="p">)));</span>
+</span><span class='line'>            <span class="n">counter</span> <span class="o">+=</span> <span class="m">1</span><span class="p">;</span>
+</span><span class='line'>          <span class="p">}</span>
+</span><span class='line'>          <span class="n">Ok</span><span class="p">(())</span>
+</span><span class='line'>        <span class="p">})</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// [42,43,44,45]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/urSwVE">playpen</a></p>
+
+<p>Since rust will not allow to provide the implementation of a trait for
+a type where both the trait and the type were defined in the external
+crate, we need to create a tuple struct (newtype) for the array.</p>
+
+<p>Overall, this implementation looks similar to the previous, except we&rsquo;re using
+the combination of <code>emit_seq</code> + <code>emit_seq_elt</code> to emit <code>[</code> + elements +
+<code>]</code>. We also keep a counter variable to correctly handle the comma.</p>
+
+<p>Note that the implementation signature adds new <code>T</code> type parameter,
+which is the type of the array. It can be anything that implements
+<code>Encodable&lt;S, E&gt;</code> trait.</p>
+
+<h3>deriving(Encodable)</h3>
+
+<p>Now you&rsquo;re ready to understand what happens when you use
+<code>#[deriving(Encodable)]</code>. Let&rsquo;s use the <code>Person</code> struct example again
+and compile it with <code>--pretty expanded</code> flag:</p>
+
+<p><code>rustc app.rs --pretty expanded</code></p>
+
+<p>We see the output:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="err">#</span><span class="o">!</span><span class="p">[</span><span class="n">feature</span><span class="p">(</span><span class="n">phase</span><span class="p">)]</span>
+</span><span class='line'><span class="err">#</span><span class="o">!</span><span class="p">[</span><span class="n">no_std</span><span class="p">]</span>
+</span><span class='line'><span class="err">#</span><span class="o">!</span><span class="p">[</span><span class="n">feature</span><span class="p">(</span><span class="n">globs</span><span class="p">)]</span>
+</span><span class='line'><span class="cp">#[phase(plugin, link)]</span>
+</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">std</span> <span class="o">=</span> <span class="s">&quot;std&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#[prelude_import]</span>
+</span><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">prelude</span><span class="o">::*</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">Encodable</span><span class="p">};</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'>    <span class="n">age</span><span class="o">:</span> <span class="k">int</span><span class="p">,</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="cp">#[automatically_derived]</span>
+</span><span class='line'><span class="k">impl</span> <span class="o">&lt;</span><span class="n">__S</span><span class="o">:</span> <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Encoder</span><span class="o">&lt;</span><span class="n">__E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">__E</span><span class="o">&gt;</span> <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Encodable</span><span class="o">&lt;</span><span class="n">__S</span><span class="p">,</span> <span class="n">__E</span><span class="o">&gt;</span>
+</span><span class='line'>     <span class="k">for</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">fn</span> <span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">self</span><span class="p">,</span> <span class="n">__arg_0</span><span class="o">:</span> <span class="o">&amp;</span><span class="k">mut</span> <span class="n">__S</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="o">::</span><span class="n">std</span><span class="o">::</span><span class="n">result</span><span class="o">::</span><span class="n">Result</span><span class="o">&lt;</span><span class="p">(),</span> <span class="n">__E</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">match</span> <span class="o">*</span><span class="n">self</span> <span class="p">{</span>
+</span><span class='line'>            <span class="n">Person</span> <span class="p">{</span> <span class="n">name</span><span class="o">:</span> <span class="n">ref</span> <span class="n">__self_0_0</span><span class="p">,</span> <span class="n">age</span><span class="o">:</span> <span class="n">ref</span> <span class="n">__self_0_1</span> <span class="p">}</span> <span class="o">=&gt;</span>
+</span><span class='line'>            <span class="n">__arg_0</span><span class="p">.</span><span class="n">emit_struct</span><span class="p">(</span><span class="s">&quot;Person&quot;</span><span class="p">,</span> <span class="m">2</span><span class="k">u</span><span class="p">,</span> <span class="n">ref</span> <span class="o">|</span><span class="n">_e</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>                                <span class="n">match</span> <span class="n">_e</span><span class="p">.</span><span class="n">emit_struct_field</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span> <span class="m">0</span><span class="k">u</span><span class="p">,</span>
+</span><span class='line'>                                                           <span class="n">ref</span> <span class="o">|</span><span class="n">_e</span><span class="o">|</span>
+</span><span class='line'>                                                               <span class="p">(</span><span class="o">*</span><span class="n">__self_0_0</span><span class="p">).</span><span class="n">encode</span><span class="p">(</span><span class="n">_e</span><span class="p">))</span>
+</span><span class='line'>                                    <span class="p">{</span>
+</span><span class='line'>                                    <span class="n">Ok</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">__try_var</span><span class="p">,</span>
+</span><span class='line'>                                    <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">),</span>
+</span><span class='line'>                                <span class="p">};</span>
+</span><span class='line'>                                <span class="n">return</span> <span class="n">_e</span><span class="p">.</span><span class="n">emit_struct_field</span><span class="p">(</span><span class="s">&quot;age&quot;</span><span class="p">,</span> <span class="m">1</span><span class="k">u</span><span class="p">,</span>
+</span><span class='line'>                                                            <span class="n">ref</span> <span class="o">|</span><span class="n">_e</span><span class="o">|</span>
+</span><span class='line'>                                                                <span class="p">(</span><span class="o">*</span><span class="n">__self_0_1</span><span class="p">).</span><span class="n">encode</span><span class="p">(</span><span class="n">_e</span><span class="p">));</span>
+</span><span class='line'>                            <span class="p">}),</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The implementation provided by the Rust compiler is almost identical to
+ours, except that it further expanded the <code>try!</code> macros into <code>Err</code> and
+<code>Ok</code> branches.</p>
+
+<p>Second part of this article will explain the reverse process: how to
+decode Rust objects from JSON string.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[immutability in Ruby]]></title>
