@@ -4,7 +4,7 @@
   <title><![CDATA[Category: json | valve's]]></title>
   <link href="http://valve.github.io/blog/categories/json/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-08-25T17:08:49+04:00</updated>
+  <updated>2014-08-26T12:41:40+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -12,6 +12,609 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[JSON serialization in Rust, part 2]]></title>
+    <link href="http://valve.github.io/blog/2014/08/26/json-serialization-in-rust-part-2/"/>
+    <updated>2014-08-26T09:09:00+04:00</updated>
+    <id>http://valve.github.io/blog/2014/08/26/json-serialization-in-rust-part-2</id>
+    <content type="html"><![CDATA[<p>This post is intended for people coming from high level languages, such as
+Ruby or JavaScript and who may be surprised with the complexity of
+the JSON serialization infrastructure in Rust.</p>
+
+<p>This is the second part of the 2 part post that deals with decoding JSON
+strings into Rust values.
+<a href="http://valve.github.io/blog/2014/08/25/json-serialization-in-rust-part-1/">First part is available here</a>.</p>
+
+<h2>Overview</h2>
+
+<p>When working with JSON deserialization, we&rsquo;re interested in
+<a href="http://doc.rust-lang.org/serialize/trait.Decodable.html">Decodable</a> and
+<a href="http://doc.rust-lang.org/serialize/trait.Decoder.html">Decoder</a> traits.</p>
+
+<p>As with serialization, <code>hex</code> and <code>base64</code> modules are not relevant to JSON
+deserialization, so we should not pay attention to them.</p>
+
+<!--more -->
+
+
+<h2>Deserialization</h2>
+
+<p>In order for a type to be decodable from JSON, it must implement
+<a href="http://doc.rust-lang.org/serialize/trait.Decodable.html">Decodable</a>
+trait. Almost all built-in types already implement it, so you can deserialize
+them with:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">};</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">numeric_s</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="m">3.14</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">greeting</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="err">\</span><span class="s">&quot;Hello, world\&amp;rdquo;&amp;ldquo;;</span>
+</span><span class='line'><span class="s">  let pi: f64 = json::decode(numeric_s).unwrap();</span>
+</span><span class='line'><span class="s">  println!(&amp;rdquo;{}&amp;ldquo;, pi);</span>
+</span><span class='line'><span class="s">  let decoded_greeting: String = json::decode(greeting).unwrap();</span>
+</span><span class='line'><span class="s">  println!(&amp;rdquo;{}&amp;ldquo;, decoded_greeting);</span>
+</span><span class='line'><span class="s">}</span>
+</span><span class='line'><span class="s">// 3.14</span>
+</span><span class='line'><span class="s">// Hello, world</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/N3p1IE">playpen</a></p>
+
+<h3>Option</h3>
+
+<p>Deserializing to Option is somewhat redundant, because <code>json::decode</code>
+<a href="https://github.com/rust-lang/rust/blob/5fb2dfaa200f2cb32e77c54ae8a5e0f4823b65c8/src/libserialize/json.rs#L288">returns</a>
+<a href="http://doc.rust-lang.org/serialize/json/type.DecodeResult.html">DecodeResult</a>, which is a type alias
+for a regular result. That means you can pattern match on DecodeResult
+and handle potential failure.</p>
+
+<h3>Vector</h3>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">// assuming in main with json in scope</span>
+</span><span class='line'><span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;[</span><span class="m">42</span><span class="p">,</span> <span class="m">43</span><span class="p">,</span> <span class="m">44</span><span class="p">,</span> <span class="m">45</span><span class="p">]</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'><span class="k">let</span> <span class="n">vec</span><span class="o">:</span> <span class="n">Vec</span><span class="o">&lt;</span><span class="k">i32</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">json</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">raw_json</span><span class="p">).</span><span class="n">unwrap</span><span class="p">();</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{}</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">vec</span><span class="p">);</span>
+</span><span class='line'><span class="c1">// [42, 43, 44, 56]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/z5cLqu">playpen</a></p>
+
+<h3>Tuple</h3>
+
+<p>Decoding JSON to a tuple is identical to vector, just specify the
+correct type:
+<div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="c1">// assuming in main with json in scope</span>
+</span><span class='line'><span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;[</span><span class="m">42</span><span class="p">,</span> <span class="m">43</span><span class="p">]</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'><span class="k">let</span> <span class="n">tup</span><span class="o">:</span> <span class="p">(</span><span class="k">i32</span><span class="p">,</span> <span class="k">i32</span><span class="p">)</span> <span class="o">=</span> <span class="n">json</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">raw_json</span><span class="p">).</span><span class="n">unwrap</span><span class="p">();</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{}</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">tup</span><span class="p">);</span>
+</span><span class='line'><span class="c1">// (42, 43)</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/KTvqSC">playpen</a></p>
+
+<h3>HashMap</h3>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">};</span>
+</span><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">collections</span><span class="o">::</span><span class="n">HashMap</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{</span><span class="err">\</span><span class="s">&quot;e\&amp;rdquo;:2.71,\&amp;ldquo;pi\&amp;rdquo;:3.14}&amp;ldquo;;</span>
+</span><span class='line'><span class="s">  let map: HashMap&amp;lt;String, f64&gt; = json::decode(raw_json).unwrap();</span>
+</span><span class='line'><span class="s">  println!(&amp;rdquo;{}&amp;ldquo;, map);</span>
+</span><span class='line'><span class="s">}</span>
+</span><span class='line'><span class="s">// {pi: 3.14, e: 2.71}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/f2Smhd">playpen</a></p>
+
+<h3>Array</h3>
+
+<p>As with serializing, Rust cannot automatically deserialize JSON string
+into a fixed-length array. The reason for this is the same: arrays' type
+signature contain length as part of the type, but Rust currently (and
+most likely not until after v1.0) can&rsquo;t be generic over array&rsquo;s length.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;[</span><span class="m">42</span><span class="p">,</span> <span class="m">43</span><span class="p">]</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'><span class="k">let</span> <span class="n">arr</span><span class="o">:</span> <span class="p">[</span><span class="k">i32</span><span class="p">,..</span><span class="m">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">raw_json</span><span class="p">).</span><span class="n">unwrap</span><span class="p">();</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{}</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;,</span> <span class="n">arr</span><span class="p">);</span>
+</span><span class='line'><span class="c1">// failed to find an implementation of trait</span>
+</span><span class='line'><span class="c1">// serialize::serialize::Decodable&amp;lt;serialize::json::Decoder,serialize::json::DecoderError&gt;</span>
+</span><span class='line'><span class="c1">// for [i32, .. 2]</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/c8N3CV">playpen</a></p>
+
+<p>To remedy this, we will use custom decoding, as we did with custom array
+encoding in part 1.
+I&rsquo;ll show an example of this below.</p>
+
+<h3>Structs</h3>
+
+<p>As with serialization, it&rsquo;s possible to have Rust deserialize structs
+automatically for you. You will need to add the
+<code>#[deriving(Decodable)]</code> attribute to your struct:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">};</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{</span><span class="err">\</span><span class="s">&quot;name\&amp;rdquo;:\&amp;ldquo;John Doe\&amp;rdquo;,\&amp;ldquo;age\&amp;rdquo;:33}&amp;ldquo;;</span>
+</span><span class='line'><span class="s">  let person: Person = json::decode(raw_json).unwrap();</span>
+</span><span class='line'><span class="s">  println!(&amp;rdquo;{}&amp;ldquo;, person);</span>
+</span><span class='line'><span class="s">}&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;h1&gt;[deriving(Encodable, Decodable, Show)]&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;p&gt;struct Person {</span>
+</span><span class='line'><span class="s">  name: String,</span>
+</span><span class='line'><span class="s">  age: int</span>
+</span><span class='line'><span class="s">}</span>
+</span><span class='line'><span class="s">// Person { name: John Doe, age: 33 }</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/SdeDWO">playpen</a></p>
+
+<p>Note that I&rsquo;m using 3 deriving trait implementations for a struct:
+<code>Encodable</code>, <code>Decodable</code> and <code>Show</code>. This is to make my struct fully
+JSON (de)serializable and printable automatically.</p>
+
+<h3>Custom deserialization</h3>
+
+<p>This is probably the cornerstone of the JSON infrastructure.
+In real life you often cannot control the shape of the JSON that comes to
+you, so you must be able to convert arbitrary JSON strings into your
+objects. Luckily, Rust decoding capabilities will help us here.</p>
+
+<p>Let us continue with our <code>Person</code> struct example and deserialize the
+object from a complex JSON where our object is in the <code>data</code>
+key. The example might be contrived, but it serves the demo purpose.</p>
+
+<p>To make a type JSON deserializable we need to implement the <code>Decodable</code>
+trait.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">,</span> <span class="n">Decodable</span><span class="p">,</span> <span class="n">Decoder</span><span class="p">};</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="n">r</span><span class="err">#</span><span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;{</span><span class="s">&quot;type&amp;rdquo;: &amp;ldquo;Person&amp;rdquo;, &amp;ldquo;data&amp;rdquo;: {&amp;ldquo;name&amp;rdquo;: &amp;ldquo;John Doe&amp;rdquo;, &amp;ldquo;age&amp;rdquo;: 33}}&amp;ldquo;#;</span>
+</span><span class='line'><span class="s">  let person: Person = json::decode(raw_json).unwrap();</span>
+</span><span class='line'><span class="s">  println!(&amp;rdquo;{}&amp;ldquo;, person);</span>
+</span><span class='line'><span class="s">}&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;h1&gt;[deriving(Show)]&lt;/h1&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;p&gt;struct Person {</span>
+</span><span class='line'><span class="s">  name: String,</span>
+</span><span class='line'><span class="s">  age: int</span>
+</span><span class='line'><span class="s">}&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;p&gt;impl&amp;lt;S: Decoder&lt;E&gt;, E&gt; Decodable&amp;lt;S, E&gt; for Person {</span>
+</span><span class='line'><span class="s">  fn decode(decoder: &amp;amp;mut S) &amp;ndash;&gt; Result&amp;lt;Person, E&gt; {&lt;/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;pre&gt;&lt;code&gt;decoder.read_struct(&quot;</span><span class="n">root</span><span class="s">&quot;, 0, |decoder| {</span>
+</span><span class='line'><span class="s">  decoder.read_struct_field(&quot;</span><span class="n">data</span><span class="s">&quot;, 0, |decoder| {</span>
+</span><span class='line'><span class="s">     Ok(Person{</span>
+</span><span class='line'><span class="s">      name: try!(decoder.read_struct_field(&quot;</span><span class="n">name</span><span class="s">&quot;, 0, |decoder| Decodable::decode(decoder))),</span>
+</span><span class='line'><span class="s">      age: try!(decoder.read_struct_field(&quot;</span><span class="n">age</span><span class="s">&quot;, 0, |decoder| Decodable::decode(decoder)))</span>
+</span><span class='line'><span class="s">    })</span>
+</span><span class='line'><span class="s">  })</span>
+</span><span class='line'><span class="s">})</span>
+</span><span class='line'><span class="s">&lt;/code&gt;&lt;/pre&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="s">&lt;p&gt;  }</span>
+</span><span class='line'><span class="s">}</span>
+</span><span class='line'><span class="s">// Person { name: John Doe, age: 33 }</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/TKPROs">playpen</a></p>
+
+<p>Let&rsquo;s break down the code line by line to see what&rsquo;s going on here.</p>
+
+<p><code>Line 2:</code> We need to bring both <code>Decodable</code> and <code>Decoder</code> traits into
+scope. <code>Decodable</code> trait is for the struct to implement, to conform to
+the JSON deserialization interface, while the
+<code>Decoder</code> is the low level workhorse of deserialization, which tokenizes
+and parses the JSON string to convert it to Rust values later.</p>
+
+<p><code>Line 5:</code> I&rsquo;m using a raw string literal to avoid escaping double quotes.</p>
+
+<p><code>Line 6:</code> The line where I&rsquo;m decoding JSON string into an instance of
+<code>Person</code> struct. Note that I need to type-annotate the variable when
+decoding it.</p>
+
+<p><code>Line 10:</code> We no longer need to use the <code>#[deriving(Decodable)]</code>
+attribute, because we implement the <code>Decodable</code> trait ourselves.</p>
+
+<p><code>Line 16:</code> This is the <code>Decodable</code> implementation. It is very similar to
+the <code>Encodable</code> implementation from part 1 with the exception of <code>S</code> being
+type restricted to <code>Decoder</code> trait now.</p>
+
+<p><code>Line 17:</code> Two differences from <code>encode</code> method counterpart:
+we&rsquo;re no longer accepting <code>&amp;self</code> as the first argument,
+because <code>decode</code> is an associated function, rather than a method.
+The analogy is class methods in Ruby or static methods
+in Java. Second difference is the return type. It is now <code>Result&lt;Person,
+E&gt;</code>.</p>
+
+<p><code>Line 18:</code> This is where the parsing starts. We do actual parsing with
+<code>read_*</code> family of methods on <code>Decoder</code> instance. Here we&rsquo;re reading the
+top-level struct with <code>read_struct</code> method. First argument is the name
+of the sturct(not used), second is the length (not applicable). The third argument is an
+instance of anonymous function (lambda). Why are the first and the
+second arguments not used?
+I think this is because the entire family of <code>read_*</code> methods of
+<code>Encoder</code> strives to be uniform and thus a unified set of arguments
+is used, even when the encoder does not need them.</p>
+
+<p>You can think of the <code>read_struct</code> call as &ldquo;opening&rdquo; the top-level JSON
+object to be able to move inside to read actual values. The lambda is
+where we descend and continue with reading.</p>
+
+<p><code>Line 19:</code> The object we&rsquo;re trying to read is in the <code>data</code> field, so
+we&rsquo;re reading it on this line with <code>read_struct_field</code> method.
+This time the first argument is necessary, because it tells the decoder
+the actual name of the field. 3rd argument is the lambda again to
+descend further into the the object in the <code>data</code> field.</p>
+
+<p><code>Lines 20-21:</code> Field reading happens here. By this time the parser
+has reached the contents of the <code>data</code> object so we can now just read the
+fields we&rsquo;re interested in one-by-one. We&rsquo;re using <code>read_struct_field</code>
+again, passing it the name of the field and the index(not used).
+The third argument is the value of the field, correctly decoded from
+JSON representation. Since all primitive values in Rust already
+implement the <code>Decodable</code> trait, we can safely call <code>Decodable::decode</code>
+on them to deserialize them as the <code>Person</code> struct fields.</p>
+
+<h4>Deserializing fixed length arrays</h4>
+
+<p>As in part 1, let&rsquo;s use this knowledge to deserialize a fixed-length
+array from JSON.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">default</span><span class="o">::</span><span class="n">Default</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">json</span><span class="p">,</span> <span class="n">Decodable</span><span class="p">,</span> <span class="n">Decoder</span><span class="p">};</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">static</span> <span class="n">BUFFER_SIZE</span><span class="o">:</span> <span class="k">uint</span> <span class="o">=</span> <span class="m">4</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">fn</span> <span class="n">main</span><span class="p">(){</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">raw_json</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;[</span><span class="m">42</span><span class="p">,</span> <span class="m">43</span><span class="p">,</span> <span class="m">44</span><span class="p">,</span> <span class="m">45</span><span class="p">]</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">buf</span><span class="o">:</span> <span class="n">Buffer</span><span class="o">&lt;</span><span class="k">i32</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">json</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">raw_json</span><span class="p">).</span><span class="n">unwrap</span><span class="p">();</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">Buffer</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">=</span> <span class="n">buf</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span> <span class="n">i</span> <span class="n">in</span> <span class="n">arr</span><span class="p">.</span><span class="n">iter</span><span class="p">()</span> <span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">struct</span> <span class="n">Buffer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">([</span><span class="n">T</span><span class="p">,..</span><span class="n">BUFFER_SIZE</span><span class="p">]);</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">impl</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">S</span><span class="o">:</span> <span class="n">Decoder</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">T</span><span class="o">:</span> <span class="n">Default</span><span class="o">+</span><span class="n">Copy</span><span class="o">+</span><span class="n">Decodable</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Decodable</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Buffer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">fn</span> <span class="n">decode</span><span class="p">(</span><span class="n">decoder</span><span class="o">:</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="k">mut</span> <span class="n">S</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">ndash</span><span class="p">;</span><span class="o">&gt;</span> <span class="n">Result</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">Buffer</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">decoder</span><span class="p">.</span><span class="n">read_seq</span><span class="p">(</span><span class="o">|</span><span class="n">decoder</span><span class="p">,</span> <span class="n">len</span><span class="o">|</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">len</span> <span class="o">!=</span> <span class="n">BUFFER_SIZE</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">decoder</span><span class="p">.</span><span class="n">error</span><span class="p">(</span><span class="n">format</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;Expecting array of length: {}, but found {}&quot;</span><span class="p">,</span> <span class="n">BUFFER_SIZE</span><span class="p">,</span> <span class="n">len</span><span class="p">).</span><span class="n">as_slice</span><span class="p">()));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">let</span> <span class="k">mut</span> <span class="n">arr</span><span class="o">:</span> <span class="p">[</span><span class="n">T</span><span class="p">,..</span><span class="n">BUFFER_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">Default</span><span class="o">::</span><span class="n">default</span><span class="p">(),..</span><span class="n">BUFFER_SIZE</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="n">in</span> <span class="n">arr</span><span class="p">.</span><span class="n">mut_iter</span><span class="p">().</span><span class="n">enumerate</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>    <span class="o">*</span><span class="n">val</span> <span class="o">=</span> <span class="n">try</span><span class="o">!</span><span class="p">(</span><span class="n">decoder</span><span class="p">.</span><span class="n">read_seq_elt</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Decodable</span><span class="o">::</span><span class="n">decode</span><span class="p">));</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">Ok</span><span class="p">(</span><span class="n">Buffer</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span>
+</span><span class='line'><span class="p">})</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="c1">// 42</span>
+</span><span class='line'><span class="c1">// 43</span>
+</span><span class='line'><span class="c1">// 44</span>
+</span><span class='line'><span class="c1">// 45</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+<a href="http://is.gd/zl076C">playpen</a></p>
+
+<p>Since rust will not allow to provide the implementation of a trait for
+a type where both the trait and the type were defined in the external
+crate, we need to create a tuple struct (newtype) for the array.</p>
+
+<p>Overall, this implementation looks similar to the previous, but there are
+nuances I&rsquo;d like to point out.</p>
+
+<p><code>Line 18:</code> Note that the implementation signature adds new <code>T</code> type parameter,
+which is the type of the array. It can be anything that implements
+<code>Default</code>+<code>Copy</code>+<code>Encodable&lt;S, E&gt;</code> traits.
+<code>Default</code> is to be able to fill array with default values (line 24).
+<code>Copy</code> is to be able to copy the default values
+into the new array, while the <code>Decodable&lt;S, E&gt;</code> is to be able to decode
+the array elements from JSON.</p>
+
+<p><code>Lines 22-24:</code> Here I&rsquo;m checking if the array we&rsquo;re about to decode contains
+exactly the number of elements we expect. If not, I exit early with an
+error.</p>
+
+<p><code>Lines 26-28:</code> Here I&rsquo;m iterating the array, obtaining mutable
+references to its elements and filling them from JSON, using
+<code>decoder::read_seq_elt</code>.</p>
+
+<p><code>Line 29:</code> Here I&rsquo;m returning the result wrapped in <code>Buffer</code> newtype.</p>
+
+<h3>deriving(Decodable)</h3>
+
+<p>As in part 1, let&rsquo;s look at the expanded implementation of the
+<code>#[deriving(Decodable)]</code> attribute.
+Let&rsquo;s use the <code>Person</code> struct example again
+and compile it with <code>--pretty expanded</code> flag:</p>
+
+<p><code>rustc app.rs --pretty expanded</code></p>
+
+<p>The output:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;!</span><span class="p">[</span><span class="n">feature</span><span class="p">(</span><span class="n">phase</span><span class="p">)]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;!</span><span class="p">[</span><span class="n">no_std</span><span class="p">]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;!</span><span class="p">[</span><span class="n">feature</span><span class="p">(</span><span class="n">globs</span><span class="p">)]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="p">[</span><span class="n">phase</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">link</span><span class="p">)]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">extern</span> <span class="n">crate</span> <span class="n">std</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="n">std</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">rt</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ldquo</span><span class="p">;</span><span class="k">native</span><span class="o">&amp;</span><span class="n">rdquo</span><span class="p">;;</span>
+</span><span class='line'><span class="n">extern</span> <span class="n">crate</span> <span class="n">serialize</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="p">[</span><span class="n">prelude_import</span><span class="p">]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">use</span> <span class="n">std</span><span class="o">::</span><span class="n">prelude</span><span class="o">::*</span><span class="p">;</span>
+</span><span class='line'><span class="k">use</span> <span class="n">serialize</span><span class="o">::</span><span class="p">{</span><span class="n">Decodable</span><span class="p">};</span>
+</span><span class='line'><span class="n">struct</span> <span class="n">Person</span> <span class="p">{</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">name</span><span class="o">:</span> <span class="n">String</span><span class="p">,</span>
+</span><span class='line'><span class="n">age</span><span class="o">:</span> <span class="k">int</span><span class="p">,</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">h1</span><span class="o">&gt;</span><span class="p">[</span><span class="n">automatically_derived</span><span class="p">]</span><span class="o">&lt;/</span><span class="n">h1</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="k">impl</span> <span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">D</span><span class="o">:</span> <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Decoder</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">E</span><span class="o">&gt;</span> <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Decodable</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">strong</span><span class="o">&gt;</span><span class="n">D</span><span class="p">,</span> <span class="n">__E</span><span class="o">&gt;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span> <span class="k">for</span> <span class="n">Person</span> <span class="p">{</span>
+</span><span class='line'><span class="k">fn</span> <span class="n">decode</span><span class="p">(</span><span class="n">__arg_0</span><span class="o">:</span> <span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="k">mut</span> <span class="n">__D</span><span class="p">)</span> <span class="o">-&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="o">::</span><span class="n">std</span><span class="o">::</span><span class="n">result</span><span class="o">::</span><span class="n">Result</span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="n">Person</span><span class="p">,</span> <span class="n">__E</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">__arg_0</span><span class="p">.</span><span class="n">read_struct</span><span class="p">(</span><span class="s">&quot;Person&quot;</span><span class="p">,</span> <span class="m">2</span><span class="k">u</span><span class="p">,</span>
+</span><span class='line'>                        <span class="n">ref</span> <span class="o">|</span><span class="n">_d</span><span class="o">|</span>
+</span><span class='line'>    <span class="o">::</span><span class="n">std</span><span class="o">::</span><span class="n">result</span><span class="o">::</span><span class="n">Ok</span><span class="p">(</span><span class="n">Person</span><span class="p">{</span><span class="n">name</span><span class="o">:</span>
+</span><span class='line'>       <span class="n">match</span> <span class="n">_d</span><span class="p">.</span><span class="n">read_struct_field</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span>
+</span><span class='line'>                                  <span class="m">0</span><span class="k">u</span><span class="p">,</span>
+</span><span class='line'>                                  <span class="n">ref</span>
+</span><span class='line'>                                      <span class="o">|</span><span class="n">_d</span><span class="o">|</span>
+</span><span class='line'>                                      <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Decodable</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">_d</span><span class="p">))</span>
+</span><span class='line'>           <span class="p">{</span>
+</span><span class='line'>           <span class="n">Ok</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span>
+</span><span class='line'>           <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="n">__try_var</span><span class="p">,</span>
+</span><span class='line'>           <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span>
+</span><span class='line'>           <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span>
+</span><span class='line'>           <span class="n">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">),</span>
+</span><span class='line'>       <span class="p">},</span>
+</span><span class='line'>   <span class="n">age</span><span class="o">:</span>
+</span><span class='line'>       <span class="n">match</span> <span class="n">_d</span><span class="p">.</span><span class="n">read_struct_field</span><span class="p">(</span><span class="s">&quot;age&quot;</span><span class="p">,</span>
+</span><span class='line'>                                  <span class="m">1</span><span class="k">u</span><span class="p">,</span>
+</span><span class='line'>                                  <span class="n">ref</span>
+</span><span class='line'>                                      <span class="o">|</span><span class="n">_d</span><span class="o">|</span>
+</span><span class='line'>                                      <span class="o">::</span><span class="n">serialize</span><span class="o">::</span><span class="n">Decodable</span><span class="o">::</span><span class="n">decode</span><span class="p">(</span><span class="n">_d</span><span class="p">))</span>
+</span><span class='line'>           <span class="p">{</span>
+</span><span class='line'>           <span class="n">Ok</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span>
+</span><span class='line'>           <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="n">__try_var</span><span class="p">,</span>
+</span><span class='line'>           <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">)</span>
+</span><span class='line'>           <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span>
+</span><span class='line'>           <span class="n">return</span> <span class="n">Err</span><span class="p">(</span><span class="n">__try_var</span><span class="p">),</span>
+</span><span class='line'>       <span class="p">},}))</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>The output is very similar to the manual deserialization code we
+saw earlier, except that compiler further expanded the <code>try!</code> macros into <code>Err</code> and
+<code>Ok</code> branches.</p>
+
+<h3>Further reading</h3>
+
+<p>There is a convenience <code>ToJson</code>
+<a href="https://github.com/rust-lang/rust/blob/5fb2dfaa200f2cb32e77c54ae8a5e0f4823b65c8/src/libserialize/json.rs#L2222">trait</a> that allows implementors to quickly convert itself into JSON using
+intermediate <a href="https://github.com/rust-lang/rust/blob/5fb2dfaa200f2cb32e77c54ae8a5e0f4823b65c8/src/libserialize/json.rs#L211">Json enum</a> representation, but I recommend using it only for small and relatively simple data structures.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[JSON serialization in Rust, part 1]]></title>

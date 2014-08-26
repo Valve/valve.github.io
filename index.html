@@ -83,6 +83,62 @@ the &hellip;">
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2014/08/26/json-serialization-in-rust-part-2/">JSON Serialization in Rust, Part 2</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-08-26T09:09:00+04:00" pubdate data-updated="true">Aug 26<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>This post is intended for people coming from high level languages, such as
+Ruby or JavaScript and who may be surprised with the complexity of
+the JSON serialization infrastructure in Rust.</p>
+
+<p>This is the second part of the 2 part post that deals with decoding JSON
+strings into Rust values.
+<a href="http://valve.github.io/blog/2014/08/25/json-serialization-in-rust-part-1/">First part is available here</a>.</p>
+
+<h2>Overview</h2>
+
+<p>When working with JSON deserialization, we&rsquo;re interested in
+<a href="http://doc.rust-lang.org/serialize/trait.Decodable.html">Decodable</a> and
+<a href="http://doc.rust-lang.org/serialize/trait.Decoder.html">Decoder</a> traits.</p>
+
+<p>As with serialization, <code>hex</code> and <code>base64</code> modules are not relevant to JSON
+deserialization, so we should not pay attention to them.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2014/08/26/json-serialization-in-rust-part-2/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2014/08/25/json-serialization-in-rust-part-1/">JSON Serialization in Rust, Part 1</a></h1>
     
     
@@ -528,6 +584,10 @@ You might try to set them in mailer:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2014/08/26/json-serialization-in-rust-part-2/">JSON Serialization in Rust, Part 2</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/08/25/json-serialization-in-rust-part-1/">JSON Serialization in Rust, Part 1</a>
       </li>
     
@@ -541,10 +601,6 @@ You might try to set them in mailer:</p>
     
       <li class="post">
         <a href="/blog/2013/10/26/constant-resolution-in-ruby/">Constant Resolution in Ruby</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2013/08/01/jquery-inputmask-plugin-plus-angularjs/">jQuery Inputmask Plugin + AngularJS</a>
       </li>
     
   </ul>
