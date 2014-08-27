@@ -93,6 +93,17 @@ Array's type signature includes its length, but Rust can't be generic with array
 length. So in order to serialize an array into JSON, we'll need to use
 custom serialization, which I'll explain further.
 
+#### UPDATE: Thanks to [Reddit user ASeriesOfTubes](http://www.reddit.com/r/rust/comments/2eiyzh/json_serialization_in_rust_part_1/ck1j4ni)
+
+It is possible to serialize an array to JSON automatically. You just
+need to convert it to slice.
+{%codeblock lang:rust%}
+let numbers = [1i, 2, 3];
+println!("{}", json::encode(&numbers.as_slice()));
+// [1,2,3]
+{%endcodeblock%}
+[playpen](http://is.gd/1GM2WF)
+
 ### Structs
 
 It's possible to have Rust automatically implement JSON serialization
