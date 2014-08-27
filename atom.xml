@@ -4,7 +4,7 @@
   <title><![CDATA[valve's]]></title>
   <link href="http://valve.github.io/atom.xml" rel="self"/>
   <link href="http://valve.github.io/"/>
-  <updated>2014-08-26T12:41:40+04:00</updated>
+  <updated>2014-08-27T13:03:29+04:00</updated>
   <id>http://valve.github.io/</id>
   <author>
     <name><![CDATA[valve]]></name>
@@ -710,6 +710,22 @@ them as easily as:</p>
 <p>Array&rsquo;s type signature includes its length, but Rust can&rsquo;t be generic with array&rsquo;s
 length. So in order to serialize an array into JSON, we&rsquo;ll need to use
 custom serialization, which I&rsquo;ll explain further.</p>
+
+<h4>UPDATE: Thanks to <a href="http://www.reddit.com/r/rust/comments/2eiyzh/json_serialization_in_rust_part_1/ck1j4ni">Reddit user ASeriesOfTubes</a></h4>
+
+<p>It is possible to serialize an array to JSON automatically. You just
+need to convert it to slice.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='rust'><span class='line'><span class="k">let</span> <span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="m">1</span><span class="k">i</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">];</span>
+</span><span class='line'><span class="n">println</span><span class="o">!</span><span class="p">(</span><span class="s">&quot;{}&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">::</span><span class="n">encode</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numbers</span><span class="p">.</span><span class="n">as_slice</span><span class="p">()));</span>
+</span><span class='line'><span class="c1">// [1,2,3]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="http://is.gd/1GM2WF">playpen</a></p>
 
 <h3>Structs</h3>
 
